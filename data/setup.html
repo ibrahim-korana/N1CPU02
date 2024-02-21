@@ -1,0 +1,132 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=1024">
+        <meta name="viewport" content="width=device-width, initial-scale=0.5">
+        <TITLE>iCe</TITLE>
+        <link rel="stylesheet" href="header.css">
+        <link rel="stylesheet" href="tab2.css">
+    </head>
+    <body>
+        <div class="header">
+            <table class="Tab1">
+           <tr>
+               <td width="17%"><a href="http://icetr.com"><img src="ice.png"></a></td>
+               <td ><a><h2>Setup</h2></a></td>
+           </tr>
+           </table>
+           <hr style="background-color: #11516e; height: 7px;"  />
+        </div>
+        
+        <form  action='/api/save' method='POST'>
+        <table width="550px" class="center">
+            <td>
+               <Table width="50%" class="Tab2">
+                    <th colspan=2>
+                       <a>CPU 2 Genel Ayarlar</a>
+                    </th>
+                    <tr>
+                        <td style="text-align:right">Cihaz Adı</td>
+                        <td><input type="text" name="NAME" value="&NAME&"/></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:right">Cihaz Id</td>
+                        <td><input type="text" name="DEVID" value="&DEVID&"/></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:right">Local Wifi İletişim</td>
+                        <td>
+                            <label><input type="radio" name="COMM" value="0" &COMM1& />Tcp Port</label>
+                            <label><input type="radio" name="COMM" value="1" &COMM2& />Tcp Modbus</label> 
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;">Wifi Cikis Bicimi</td>
+                        <td style="text-align: left;"> 
+                           <label><input type='radio' name='OUT' value='1' &OUT1& />Wireless AP</label><br/>
+                           <label><input type='radio' name='OUT' value='2' &OUT2& />Wireless STA</label><br/>
+                        </td>
+                    </tr>
+
+                    <tr><td colspan=2 style="text-align:center; font-size:10px;" >0 Normal Açılış<br>1 In/Out Test<br>2 Rs485 Output Test<br>4 Rs485 Input Test</td></tr>
+                    <tr>
+                        <td style="text-align:right">Başlangıç Türü</td>
+                        <td><input type="text" name="START" value="&START&"/></td>
+                    </tr>
+
+                    <tr>
+                        <td style="text-align: right;">Web Server Start</td>
+                        <td style="text-align: left;"><input type='checkbox' name='WEB' &WEB&/></td>
+                    </tr>
+
+                    <tr>
+                        <td style="text-align: right;">Reset Servisi</td>
+                        <td style="text-align: left;"><input type='checkbox' name='RESET' &RESET&/></td>
+                    </tr>
+
+                    <tr>
+                        <th colspan="2">IP</th>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;">IP Alma Şekli (Wireless STA)</td>
+                        <td style="text-align: left;">
+                           <label><input type='radio' name='GETIP' value='1' &GETIP1& />Statik</label><br/>
+                           <label><input type='radio' name='GETIP' value='2' &GETIP2& />Dinamik</label><br/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;">Ip</td>
+                        <td style="text-align: left;"><input type='text' name='IP' value='&IP&'/></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;">Netmask</td>
+                        <td style="text-align: left;"><input type='text' name='NETMASK' value='&NETMASK&'/></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;">Gateway</td>
+                        <td style="text-align: left;"><input type='text' name='GATEWAY' value='&GATEWAY&'/></td>
+                    </tr>
+                    <tr>
+                        <th  colspan="2">Wifi</th>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;">ssid</td>
+                        <td style="text-align: left;"><input type='text' name='SSID' value='&SSID&'/></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;">password</td>
+                        <td style="text-align: left;"><input type='text' name='PASS' value='&PASS&'/></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;">Update Server</td>
+                        <td style="text-align: left;"><input type='text' name='UPDSER' value='&UPDSER&'/></td>
+                    </tr> 
+                    <tr>
+                        <td style="text-align: right;">Firmware Upgrade</td>
+                        <td style="text-align: left;"><input type='checkbox' name='UPD' &UPD&/></td>
+                    </tr>                    
+               </Table> 
+            </td>
+            <td>
+                
+            </td>
+        <tr>
+            <td colspan="2">
+                <input style="height:50px; width:100%; background:#11516e; color:#ffffffff;" type="submit" value="SAVE AND RESET"/>
+            </form>
+            </td>
+        </tr> 
+        <tr>
+            <td colspan="2">
+                <form action='/api/default' method='POST'>
+                <input style="height:50px; width:100%; background:#11516e; color:#ffffffff" type="submit" value="DEFAULT RESET"/>
+                </form>
+            </td>
+        </tr>  
+        <tr>
+            <td colspan="2" style="text-align:center;"><a href='/'>ANA SAYFA</a> </td>
+        </tr>     
+
+        </table>
+    </body>
+</html>

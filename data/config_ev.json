@@ -1,0 +1,173 @@
+{
+    "devices":"Ice_Box",
+    "functions": [
+        {
+            "name":"sec",
+            "uname":"guvenlik",
+            "id": 1,
+            "loc": 0,
+            "timer": 10,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 10, "pcf":1, "name":"Siren","type":"PORT_OUTPORT"},                     
+                    {"pin": 27, "name":"Su","type":"PORT_WATER", "reverse":1},
+                    {"pin": 11, "pcf":1, "name":"Hareket","type":"PORT_INPORT", "reverse":1}
+                ]              
+            }
+        },
+        {
+            "name":"water",
+            "uname":"soguk su",
+            "id": 2,
+            "timer": 0,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 11, "pcf":1, "name":"Su","type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+        {
+            "name":"cont",
+            "uname":"kontaktor",
+            "id": 3,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 4, "pcf":1, "name":"Kontaktor","type":"PORT_OUTPORT"}
+                ]
+            }
+        },       
+        {
+            "name":"lamp",
+            "uname":"Lamba 1",
+            "id": 4,
+            "loc": 0,
+            "timer": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 1, "pcf":1, "name":"role","type":"PORT_OUTPORT"},
+                    {"pin": 1, "pcf":1, "name":"anahtar","type":"PORT_INPORT"}
+                ]
+            }
+        },
+        {
+            "name":"lamp",
+            "uname":"Lamba 2",
+            "id": 5,
+            "loc": 0,
+            "timer": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 2, "pcf":1, "name":"role","type":"PORT_OUTPORT"},
+                    {"pin": 2, "pcf":1, "name":"anahtar","type":"PORT_INPORT"}
+                ]
+            }
+        },
+        {
+            "name":"lamp",
+            "uname":"Lamba 3",
+            "id": 6,
+            "loc": 0,
+            "timer": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 3, "pcf":1, "name":"role","type":"PORT_OUTPORT"},
+                    {"pin": 3, "pcf":1, "name":"anahtar","type":"PORT_INPORT"}
+                ]
+            }
+        },
+        {
+            "name":"onoff",
+            "uname":"klima",
+            "id": 7,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 12, "pcf":1, "name":"Klima","type":"PORT_OUTPORT"}
+                ]
+            }
+        },  
+        {
+            "name":"pis",
+            "uname":"Piston",
+            "id": 9,
+            "loc": 0,
+            "timer": 60,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 8,"pcf":1, "name":"UP", "type":"PORT_OUTPORT"},
+                    {"pin": 9,"pcf":1, "name":"DOWN", "type":"PORT_OUTPORT"},
+                    {"pin": 7,"pcf":1, "name":"MOTOR", "type":"PORT_OUTPORT"},
+
+                    {"pin": 8, "pcf":1, "name":"UP","type":"PORT_INPORT"},
+                    {"pin": 9, "pcf":1, "name":"DOWN","type":"PORT_INPORT"}
+                ]
+            }
+        },        
+        {
+            "name":"lamp",
+            "uname":"Lamba 4",
+            "id": 10,
+            "loc": 0,
+            "timer": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 13, "pcf":1, "name":"role","type":"PORT_OUTPORT"},
+                    {"pin": 6, "pcf":1, "name":"anahtar","type":"PORT_INPORT"}
+                ]
+            }
+        },
+        {
+            "name":"lamp",
+            "uname":"Lamba 5",
+            "id": 11,
+            "loc": 0,
+            "timer": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 15, "pcf":1, "name":"role","type":"PORT_OUTPORT"},
+                    {"pin": 7, "pcf":1, "name":"anahtar","type":"PORT_INPORT"}
+                ]
+            }
+        },
+        {
+            "name":"lamp",
+            "uname":"Lamba 6",
+            "id": 12,
+            "loc": 0,
+            "timer": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 5, "pcf":1, "name":"role","type":"PORT_OUTPORT"},
+                    {"pin": 4, "pcf":1, "name":"anahtar","type":"PORT_INPORT"}
+                ]
+            }
+        },
+        {
+            "name":"lamp",
+            "uname":"Lamba 7",
+            "id": 13,
+            "loc": 0,
+            "timer": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 6, "pcf":1, "name":"role","type":"PORT_OUTPORT"},
+                    {"pin": 5, "pcf":1, "name":"anahtar","type":"PORT_INPORT"}
+                ]
+            }
+        } 
+    ]
+}

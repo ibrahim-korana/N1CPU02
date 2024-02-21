@@ -1,0 +1,165 @@
+{
+    "devices":"Ice_ExBox",
+    "functions": [
+        {
+            "name":"lamp",
+            "uname":"Lamba1",
+            "id": 1,
+            "timer": 0,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 1,"pcf":1, "name":"L1 Role", "type":"PORT_OUTPORT"},
+                    {"pin": 1,"pcf":1, "name":"L1 Swc", "type":"PORT_INPULS"}
+                ]
+            }
+        },
+        {
+            "name":"lamp",
+            "uname":"Lamba2",
+            "id": 2,
+            "timer": 0,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 2,"pcf":1, "name":"L2 Role", "type":"PORT_OUTPORT"},
+                    {"pin": 2,"pcf":1, "name":"L2 Swc", "type":"PORT_INPULS"}
+                ]
+            }
+        },
+        {
+            "name":"lamp",
+            "uname":"Lamba3",
+            "id": 3,
+            "timer": 0,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 3,"pcf":1, "name":"L3 Role", "type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+        {
+            "name":"lamp",
+            "uname":"Lamba4",
+            "id": 4,
+            "timer": 0,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 4,"pcf":1, "name":"L4 Role", "type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+
+        {
+            "name":"lamp",
+            "uname":"Lamba5",
+            "id": 5,
+            "timer": 0,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 5,"pcf":1, "name":"L5 Role", "type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+
+        {
+            "name":"mwater",
+            "uname":"SU",
+            "id": 6,
+            "timer": 10,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 6, "pcf":1, "name":"ON","type":"PORT_OUTPORT"},
+                    {"pin": 9, "pcf":1, "name":"OFF","type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+
+        {
+            "name":"air",
+            "uname":"Klima1",
+            "id": 7,
+            "timer": 0,
+            "loc": 0,
+            "global":1,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 7,"pcf":1, "name":"KOLLEKTOR1", "type":"PORT_OUTPORT"},
+                    {"pin": 0, "name":"TEMP01", "type":"PORT_VIRTUAL"}
+                ]
+            }
+        },
+
+        {
+            "name":"air",
+            "uname":"Klima2",
+            "id": 8,
+            "timer": 0,
+            "loc": 0,
+            "global":1,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 8,"pcf":1, "name":"KOLLEKTOR2", "type":"PORT_OUTPORT"},
+                    {"pin": 0, "name":"TEMP02", "type":"PORT_VIRTUAL"}
+                ]
+            }
+        },
+
+        {
+            "name":"cont",
+            "uname":"kontaktor",
+            "id": 9,
+            "loc": 1,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 12, "pcf":1, "name":"Kontaktor","type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+        {
+            "name":"cur",
+            "uname":"Perde",
+            "id": 10,
+            "timer": 60,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 13,"pcf":1, "name":"UP", "type":"PORT_OUTPORT"},
+                    {"pin": 14,"pcf":1, "name":"DOWN", "type":"PORT_OUTPORT"},
+                    {"pin": 3,"pcf":1, "name":"UP", "type":"PORT_INPORT"},
+                    {"pin": 4,"pcf":1, "name":"DOWN", "type":"PORT_INPORT"}
+                ]
+            }
+        },    
+       
+        {
+            "name":"sec",
+            "uname":"guvenlik",
+            "id": 11,
+            "loc": 0,
+            "timer": 10,
+            "hardware": {
+                "location" : "local",
+                "port": [                    
+                    {"pin": 27, "name":"Su","type":"PORT_WATER", "reverse":1},
+                    {"pin": 6, "pcf":1, "name":"Kapi","type":"PORT_INPORT"}, 
+                    {"pin": 5, "pcf":1, "name":"Duman","type":"PORT_INPORT"}                  
+                ]              
+            }
+        }
+
+    ]
+}
