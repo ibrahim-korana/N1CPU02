@@ -48,6 +48,7 @@ set(LIBRARY_SRCS
   library/wifi_now/wifi_now.cpp
   library/asansor/asansor.cpp
   library/piston/piston.cpp
+  library/kapi/kapi.cpp
   )
 set(includedirs
   library/core
@@ -81,6 +82,7 @@ set(includedirs
   library/termostat
   library/asansor
   library/piston
+  library/kapi
   )
 
 set(srcs ${LIBRARY_SRCS})

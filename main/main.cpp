@@ -192,6 +192,7 @@ void read_task(void* arg)
         }
     }
 }
+#endif
 
 static void termostat__poll(void *arg)
 {
@@ -205,7 +206,7 @@ static void termostat__poll(void *arg)
       tmp =tmp->next;
     }
 }
-#endif
+
 
 static void late_process(void *arg)
 {
@@ -226,7 +227,7 @@ static void late_process(void *arg)
     cihazlar.init(&rs485); 
     cihazlar.start(true);  
 
-    #ifdef ATMEGA_CONTROL
+   
       esp_timer_handle_t ztimer = NULL;
       esp_timer_create_args_t arg1 = {};
       arg1.callback = &termostat__poll;
@@ -234,7 +235,7 @@ static void late_process(void *arg)
       ESP_ERROR_CHECK(esp_timer_create(&arg1, &ztimer));
       ESP_ERROR_CHECK(esp_timer_start_periodic(ztimer, 30000000));
       termostat__poll(NULL);
-    #endif  
+    
 }
 
 
@@ -257,15 +258,6 @@ extern "C" void app_main()
     
 
     config();
-    /*
-    printf("TAMAM\n");
-
-    while(true)
-    {
-vTaskDelay(10/portTICK_PERIOD_MS);
-    }
-    */
-  //  
 
     //inout_test(pcf);
 

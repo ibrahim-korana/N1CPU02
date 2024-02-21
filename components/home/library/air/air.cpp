@@ -10,13 +10,32 @@ void Air::func_callback(void *arg, port_action_t action)
 void Air::temp_action(bool send)
 {
     bool change = false, durum = false;
-    if (status.temp>=status.set_temp) {
-                                durum=false;
-                                change=true;
-                              } else {
-                                       durum = true;
-                                       change = true;
-                                     }
+    if (global==0)
+    {
+        //Isıtma Modu
+        if (status.temp>=status.set_temp) {
+                                    durum=false;
+                                    change=true;
+                                } else {
+                                        durum = true;
+                                        change = true;
+                                        }
+    }
+    if (global==1)
+    {
+        //Sogutma Modu
+        if (status.temp>0)
+        {
+            if (status.temp<=status.set_temp) {
+                                        durum=false;
+                                        change=true;
+                                    } else {
+                                            durum = true;
+                                            change = true;
+                                            }
+        }
+    }
+
     if (status.active==true && status.counter>0) {
                                         durum = true;
                                         change = true;
@@ -167,6 +186,9 @@ void Air::init(void)
     if (!genel.virtual_device)
     {
         Base_Port *target = port_head_handle;
+        if (global==0) ESP_LOGI(AIR_TAG,"TERMOSTAT ISITMA MODUNDA");
+        if (global==1) ESP_LOGI(AIR_TAG,"TERMOSTAT SOGUTMA MODUNDA");
+
         while (target) {
             if (target->type==PORT_OUTPORT)
                 {

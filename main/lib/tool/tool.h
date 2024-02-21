@@ -6,6 +6,8 @@
 #include "ice_pcf8574.h"
 
 #include "geneltanim.h" 
+#include "storage.h"
+#include "ArduinoJson.h"
 
 #define BIN_PATTERN "%c %c %c %c   %c %c %c %c"
 #define BYTE_TO_BIN(byte)  \
@@ -26,5 +28,7 @@ bool in_pin_convert(uint8_t pin, uint8_t *pcfno, uint8_t *pcfpin);
 void test01(uint16_t a_delay2, i2c_dev_t **pcf);
 void test02(uint16_t a_delay2, i2c_dev_t **pcf);
 void rs485_output_test(void);
+void rs485_input_test(void);
+void test_tip(i2c_dev_t **pcf, Storage *disk );
 
 #endif

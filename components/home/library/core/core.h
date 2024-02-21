@@ -82,7 +82,8 @@ typedef enum {
   TR_SERIAL,
   TR_ESPNOW,
   TR_LOCAL,
-  TR_GATEWAY
+  TR_GATEWAY,
+  TR_PJON
 } transmisyon_t;
 
 typedef enum {

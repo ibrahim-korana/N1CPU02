@@ -16,6 +16,7 @@
 #include "termostat.h"
 #include "asansor.h"
 #include "piston.h"
+#include "kapi.h"
 
 #include "../tool/tool.h"
 
@@ -161,6 +162,7 @@ void *add_function(uint8_t a_id, const char *a_name, const char *au_name, uint8_
       if (strcmp(a_name,"tmrelay")==0) bb0 = (TmRelay *) new TmRelay(a_id,fun_cb, dsk);
       if (strcmp(a_name,"elev")==0) bb0 = (Asansor *) new Asansor(a_id,fun_cb, dsk);
       if (strcmp(a_name,"pis")==0) bb0 = (Piston *) new Piston(a_id,fun_cb, dsk);
+      if (strcmp(a_name,"door")==0) bb0 = (Door *) new Door(a_id,fun_cb, dsk);
     //---------------------
     if (bb0!=NULL)    
       {
@@ -473,7 +475,7 @@ void *read_locations(Storage dsk)
 }
 
 
-void *read_gateway(Storage dsk, rs485_callback_t cb)
+void *read_gateway(Storage dsk, rs485_callback_t cb, RS485 *rs)
 {
     const char *name1="/config/gateway.json";
     if (dsk.file_search(name1))
@@ -496,8 +498,12 @@ void *read_gateway(Storage dsk, rs485_callback_t cb)
         for (JsonObject function : doc["gateways"].as<JsonArray>()) {
           const char* a_name = function["name"];
           uint8_t a_id = function["id"]; 
+          const char* a_trns = function["trns"];
+          transmisyon_t tt = TR_PJON;
+          if (strcmp(a_trns,"PJON")==0) tt = TR_PJON;
+          if (strcmp(a_trns,"RS485")==0) tt = TR_SERIAL;
 
-          Termostat *term = new Termostat((char*)a_name,a_id, cb);
+          Termostat *term = new Termostat((char*)a_name,a_id, cb, tt, rs);
           term->init(); //Bu satır Termostatı başlatır
           term->next = (Termostat *)termostat_head_handle;
           termostat_head_handle = term;

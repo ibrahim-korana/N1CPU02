@@ -2,7 +2,40 @@
 #include "tool.h"
 #include "esp_log.h"
 
+
 static const char *TOOL_TAG = "TOOL";
+
+void test_tip(i2c_dev_t **pcf, Storage *disk )
+{
+  const char *name1="/config/test.json";
+    if (disk->file_search(name1))
+      {
+        int fsize = disk->file_size(name1); 
+        char *buf = (char *) malloc(fsize+5);
+        if (buf==NULL) {ESP_LOGE("TEST", "memory not allogate"); return ;}
+        FILE *fd = fopen(name1, "r");
+        if (fd == NULL) {ESP_LOGE("TEST", "%s not open",name1); return ;}
+        fread(buf, fsize, 1, fd);
+        fclose(fd);
+        
+        DynamicJsonDocument doc(fsize+5);
+        DeserializationError error = deserializeJson(doc, buf);
+        if (error) {
+          ESP_LOGE("TEST","deserializeJson() failed: %s",error.c_str());
+          return;
+        } 
+          int test = doc["test"]; 
+          int time = doc["time"]; 
+          if (test==1) inout_test(pcf);
+          if (test==2) test01(time,pcf);
+          if (test==3) test02(time,pcf);
+          if (test==4) rs485_output_test();
+          if (test==5) rs485_input_test();
+
+        doc.clear();                       
+        free(buf);
+      }
+}
 
 esp_err_t pcf_init(i2c_dev_t *pp, uint8_t addr, uint8_t retry, bool log, gpio_num_t LLD)
 {
@@ -245,6 +278,11 @@ while (rep)
       }
 }
 
+
+void rs485_input_test(void)
+{
+
+}
 void init_spi(void)
 {
   

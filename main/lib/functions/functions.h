@@ -45,7 +45,7 @@
    void list_locations(void); 
    void *read_locations(Storage dsk);   
    uint8_t function_count(void); 
-   void *read_gateway(Storage dsk, rs485_callback_t cb);
+   void *read_gateway(Storage dsk, rs485_callback_t cb, RS485 *rs);
    Base_Function *function_find(uint8_t id);
 
 

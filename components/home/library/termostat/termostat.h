@@ -7,12 +7,15 @@
 #include "i2cdev.h"
 #include "i2c_gateway.h"
 #include "esp_timer.h"
+#include "rs485.h"
 
 class Termostat {
     public:
-      Termostat(char *nm, uint8_t iid, rs485_callback_t cb) {
+      Termostat(char *nm, uint8_t iid, rs485_callback_t cb, transmisyon_t trn, RS485 *r485) {
         id = iid;
         name = (char*)malloc(10);
+        trns = trn;
+        rs485 = r485;
         strcpy(name,nm);
         callback = cb;
         gateway_init_desc(&dev,0x04,(i2c_port_t)0,gpio_num_t(21),gpio_num_t(22));
@@ -45,6 +48,8 @@ class Termostat {
     protected:  
       char *name;
       uint8_t id; 
+      transmisyon_t trns=TR_PJON;
+      RS485 *rs485;
       i2c_dev_t dev = {};   
       uint8_t temp=0;
       uint8_t set=0; 

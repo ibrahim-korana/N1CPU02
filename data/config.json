@@ -146,6 +146,20 @@
         },    
        
         {
+            "name":"door",
+            "uname":"Kapi",
+            "id": 12,
+            "timer": 4,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 9,"pcf":1, "name":"ON", "type":"PORT_OUTPORT"},
+                    {"pin": 10,"pcf":1, "name":"OFF", "type":"PORT_OUTPORT"}
+                ]
+            }
+        },    
+
+        {
             "name":"sec",
             "uname":"guvenlik",
             "id": 11,

@@ -154,7 +154,7 @@ void config(void)
 
     if (GlobalConfig.start_value==1) {GlobalConfig.start_value=0; 
                                       disk.write_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig),0); 
-                                     // test_tip(pcf, &disk); 
+                                      test_tip(pcf, &disk); 
                                       } 
    
     //-------------------------------------
@@ -239,9 +239,9 @@ void config(void)
         function_list();
     }
    
-   #ifdef ATMEGA_CONTROL
-       read_gateway(disk, rs485_callback);
-   #endif    
+  
+    read_gateway(disk, rs485_callback, &rs485);
+     
    
    read_locations(disk);
    list_locations();
