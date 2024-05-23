@@ -7,6 +7,7 @@ static const char *TOOL_TAG = "TOOL";
 
 void test_tip(i2c_dev_t **pcf, Storage *disk )
 {
+  
   const char *name1="/config/test.json";
     if (disk->file_search(name1))
       {
@@ -31,11 +32,15 @@ void test_tip(i2c_dev_t **pcf, Storage *disk )
           if (test==3) test02(time,pcf);
           if (test==4) rs485_output_test();
           if (test==5) rs485_input_test();
+          if (test==6) rs485_echo_test();
 
         doc.clear();                       
         free(buf);
       }
 }
+
+
+
 
 esp_err_t pcf_init(i2c_dev_t *pp, uint8_t addr, uint8_t retry, bool log, gpio_num_t LLD)
 {
@@ -180,7 +185,7 @@ void inout_test(i2c_dev_t **pcf)
                  if (val3!=0xFF) ESP_LOGI(TOOL_TAG,"PCF3 = %02X Flag " BIN_PATTERN,val3,BYTE_TO_BIN(val3));
                           }  
         #endif                                      
-        if (gpio_get_level((gpio_num_t)WATER)==1) {ESP_LOGI(TOOL_TAG,"WATER UP");vTaskDelay(1000/portTICK_PERIOD_MS);}
+        //if (gpio_get_level((gpio_num_t)WATER)==1) {ESP_LOGI(TOOL_TAG,"WATER UP");vTaskDelay(1000/portTICK_PERIOD_MS);}
         if (gpio_get_level((gpio_num_t)BUTTON1)==0) {
                               ESP_LOGI(TOOL_TAG,"BUTTON 1 UP");
                               vTaskDelay(1000/portTICK_PERIOD_MS);
@@ -216,6 +221,9 @@ void test02(uint16_t a_delay2, i2c_dev_t **pcf)
    {
       pcf8574_port_write(pcf[0],aa);
       pcf8574_port_write(pcf[1],aa);
+      #ifdef PCF_4
+         pcf8574_port_write(pcf[4],aa);
+      #endif   
       vTaskDelay(a_delay2/portTICK_PERIOD_MS);
       if (aa==0x00) aa=0xFF; else aa=0x00;
    }    
@@ -278,11 +286,132 @@ while (rep)
       }
 }
 
-
 void rs485_input_test(void)
 {
+bool rep = true;
+uint16_t counter = 0;
+
+RS485_config_t rs485_cfg={};
+rs485_cfg.uart_num = 1;
+rs485_cfg.dev_num  = 253;
+rs485_cfg.rx_pin   = 25;
+rs485_cfg.tx_pin   = 26;
+rs485_cfg.oe_pin   = 13;
+rs485_cfg.baud     = 460800;
+
+uart_driver_delete((uart_port_t)rs485_cfg.uart_num);
+
+        uart_config_t uart_config = {};
+        uart_config.baud_rate = 115200;
+        uart_config.data_bits = UART_DATA_8_BITS;
+        uart_config.parity = UART_PARITY_DISABLE;
+        uart_config.stop_bits = UART_STOP_BITS_1;
+        uart_config.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
+        uart_config.rx_flow_ctrl_thresh = 122;
+
+ESP_ERROR_CHECK(uart_driver_install((uart_port_t)rs485_cfg.uart_num, BUF_SIZE * 2, 0, 0, NULL, 0));
+ESP_ERROR_CHECK(uart_param_config((uart_port_t)rs485_cfg.uart_num, &uart_config));
+ESP_ERROR_CHECK(uart_set_pin((uart_port_t)rs485_cfg.uart_num, rs485_cfg.tx_pin, rs485_cfg.rx_pin, rs485_cfg.oe_pin, UART_PIN_NO_CHANGE));
+ESP_ERROR_CHECK(uart_set_mode((uart_port_t)rs485_cfg.uart_num, UART_MODE_RS485_HALF_DUPLEX));
+ESP_ERROR_CHECK(uart_set_rx_timeout((uart_port_t)rs485_cfg.uart_num, 3));
+
+char * bff = (char *)calloc(1,10);
+uint8_t count = 0;
+
+while (true)
+{ 
+  int len = uart_read_bytes((uart_port_t)rs485_cfg.uart_num, bff, 2, (100 / portTICK_PERIOD_MS));
+  if (len > 0) {
+    printf("%s ", bff);
+    fflush(stdout);
+
+    if(count++>10) {
+      count=0;
+      printf("\n>> ");fflush(stdout);
+    }
+  } else ESP_ERROR_CHECK(uart_wait_tx_done((uart_port_t)rs485_cfg.uart_num, 10));
 
 }
+
+}
+
+
+static void echo_send( uart_port_t port, uint8_t count)
+{
+    char* data = (char*) calloc(1,6);
+    sprintf(data,"%02d",count);
+    if (uart_write_bytes(port, data, 2) != 2) {
+        ESP_LOGE(TOOL_TAG, "Göndermede kritik hata...");
+        abort();
+    }
+    printf("[%02X-", count); fflush(stdout); 
+    free(data);
+}
+
+#define ECHO_PORT UART_NUM_1
+#define ECHO_BAUD_RATE 115200
+#define ECHO_TX 26
+#define ECHO_RX 25
+#define ECHO_OE 13
+#define ECHO_READ_TOUT (3)
+
+
+void rs485_echo_task(void *arg)
+{
+     uart_port_t uart_num = ECHO_PORT;
+    uart_config_t uart_config = {
+        .baud_rate = ECHO_BAUD_RATE,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .rx_flow_ctrl_thresh = 122,
+        .source_clk = UART_SCLK_DEFAULT,
+    };
+    ESP_ERROR_CHECK(uart_driver_install(uart_num, BUF_SIZE * 2, 0, 0, NULL, 0));
+    ESP_ERROR_CHECK(uart_param_config(uart_num, &uart_config));
+    ESP_ERROR_CHECK(uart_set_pin(uart_num, ECHO_TX, ECHO_RX, ECHO_OE, UART_PIN_NO_CHANGE));
+    ESP_ERROR_CHECK(uart_set_mode(uart_num, UART_MODE_RS485_HALF_DUPLEX));
+    ESP_ERROR_CHECK(uart_set_rx_timeout(uart_num, ECHO_READ_TOUT));
+    char* data = (char*) calloc(1,6);
+    uint8_t count=0, ii=0, yy=0;
+    bool ww = false;
+
+    echo_send(uart_num, count);
+    while (1) {
+        int len = uart_read_bytes(uart_num, data, 2, (100 / portTICK_PERIOD_MS));
+        if (len > 0) {
+          uint8_t rr = atoi(data);
+          printf("%02x] ", rr); fflush(stdout); 
+          count=atoi(data)+1;
+          if (((++ii)%10)==0) {printf("\n");ii=0;}
+          if (((++yy)%50)==0) {ww=!ww;yy=0;gpio_set_level(GPIO_NUM_0,ww);}
+          
+          
+          echo_send(uart_num, count);
+                     } else {
+                      ESP_ERROR_CHECK(uart_wait_tx_done(uart_num, 10));
+                     }
+    }
+  vTaskDelete(NULL);
+}
+
+void rs485_echo_test(void)
+{
+    xTaskCreate(rs485_echo_task, "echo_task", 4096, NULL, 5, NULL);
+    uint8_t ee = 0;
+    while(1) {    
+      if (gpio_get_level(GPIO_NUM_34)==0)
+        {
+           echo_send(ECHO_PORT, ee);
+           vTaskDelay(500/portTICK_PERIOD_MS);
+        }       
+      vTaskDelay(100/portTICK_PERIOD_MS);
+
+    } 
+
+
+} 
 void init_spi(void)
 {
   

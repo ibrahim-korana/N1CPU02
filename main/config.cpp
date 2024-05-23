@@ -37,6 +37,70 @@ void network_default_config(void)
      disk.write_file(NETWORK_FILE,&NetworkConfig,sizeof(NetworkConfig),0);
 }
 
+void Daire_Read(Storage *disk, uint8_t *daire, uint8_t *blok )
+{
+  const char *name1="/config/daire.json";
+    if (disk->file_search(name1))
+      {
+        int fsize = disk->file_size(name1); 
+        char *buf = (char *) malloc(fsize+5);
+        if (buf==NULL) {ESP_LOGE("TEST", "memory not allogate"); return ;}
+        FILE *fd = fopen(name1, "r");
+        if (fd == NULL) {ESP_LOGE("TEST", "%s not open",name1); return ;}
+        fread(buf, fsize, 1, fd);
+        fclose(fd);
+        
+        DynamicJsonDocument doc(fsize+5);
+        DeserializationError error = deserializeJson(doc, buf);
+        if (error) {
+          ESP_LOGE("TEST","deserializeJson() failed: %s",error.c_str());
+          return;
+        } 
+          int test = doc["blok"]; 
+          int time = doc["daire"]; 
+          *blok = test;
+          *daire = time;
+        doc.clear();                       
+        free(buf);
+      }
+}
+
+void Device_Read(Storage *disk, Cihazlar *chz)
+{
+  const char *name1="/config/device.json";
+    if (disk->file_search(name1))
+      {
+        int fsize = disk->file_size(name1); 
+        char *buf = (char *) malloc(fsize+5);
+        if (buf==NULL) {ESP_LOGE("TEST", "memory not allogate"); return ;}
+        FILE *fd = fopen(name1, "r");
+        if (fd == NULL) {ESP_LOGE("TEST", "%s not open",name1); return ;}
+        fread(buf, fsize, 1, fd);
+        fclose(fd);
+        
+        DynamicJsonDocument doc(fsize+5);
+        DeserializationError error = deserializeJson(doc, buf);
+        if (error) {
+          ESP_LOGE("TEST","deserializeJson() failed: %s",error.c_str());
+          return;
+        } 
+          
+          
+        for (JsonObject function : doc["devices"].as<JsonArray>()) {
+          
+          const char* a_mac = function["mac"];
+          const char* a_trn = function["transmisyon"];
+          int a_id = function["id"]; 
+         
+          device_register_t *yd = chz->cihaz_ekle(a_mac,TR_SERIAL); 
+          yd->device_id = a_id;
+        }
+
+        doc.clear();                       
+        free(buf);
+      }
+}
+
 void config(void)
 {
     gpio_config_t io_conf = {};
@@ -64,10 +128,18 @@ void config(void)
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE; 
     gpio_config(&io_conf);
 
+
+      for (int i = 0; i < 5; i++)
+      {
+        gpio_set_level(LED,1);
+        vTaskDelay(100/portTICK_PERIOD_MS);
+        gpio_set_level(LED,0);
+        vTaskDelay(100/portTICK_PERIOD_MS);
+      }
+      
+
     //------------------- Pcf init ------------------
 
-      vTaskDelay(1000/portTICK_PERIOD_MS);
-      
       gpio_set_level((gpio_num_t)LED, 1);
       esp_err_t err0 = ESP_OK, err1 = ESP_OK, err2 = ESP_OK;
       err0 = pcf_init(&pcf0, 0x20, 5, true, (gpio_num_t)LED) ;
@@ -90,7 +162,7 @@ void config(void)
       
       #ifdef ATMEGA_CONTROL
         ATMEGA=true;
-        if (gateway_init_desc(&pcf3, 0x04, 0, (gpio_num_t)21, (gpio_num_t)22)!=ESP_OK) ATMEGA=false;
+        if (gateway_init_desc(&pcf3, 0x04, (i2c_port_t)0, (gpio_num_t)21, (gpio_num_t)22)!=ESP_OK) ATMEGA=false;
         ESP_LOGW(TAG, "ATMEGA AKTIF");
       #else
         //pcf3 = NULL; 
@@ -125,6 +197,11 @@ void config(void)
 
    get_sha256_of_partitions();
 
+
+    //rs485_echo_test();
+    //rs485_output_test();
+    //rs485_input_test();
+
     //------------------- Pcf init ------------------
       
       gpio_set_level((gpio_num_t)LED, 1);
@@ -156,6 +233,23 @@ void config(void)
                                       disk.write_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig),0); 
                                       test_tip(pcf, &disk); 
                                       } 
+    if (gpio_get_level(GPIO_NUM_27)==1 &&  gpio_get_level(GPIO_NUM_34)==0)
+    {
+        uint8_t val1=0;
+        bool ww = true;
+        while(1) {
+            gpio_set_level(GPIO_NUM_0,ww);
+            pcf8574_port_read(pcf[2], &val1);
+            if (val1==0xFE) inout_test(pcf);
+            if (val1==0xFD) test02(100,pcf);
+            if (val1==0xFB) rs485_output_test();
+            if (val1==0xF7) rs485_input_test();
+            if (val1==0xEF) rs485_echo_test();
+            vTaskDelay(100/portTICK_PERIOD_MS);
+            ww=!ww;
+        }
+      
+    } ;                               
    
     //-------------------------------------
     uart_cfg.uart_num = 2;
@@ -173,7 +267,7 @@ void config(void)
     rs485_cfg.rx_pin   = 25;
     rs485_cfg.tx_pin   = 26;
     rs485_cfg.oe_pin   = 13;
-    rs485_cfg.baud     = 460800;
+    rs485_cfg.baud     = 57600;
 
     uart.initialize(&uart_cfg, &uart_callback);
     uart.ping_start(CPU1_ID,&CPU1_Ping_Reset, LED);
@@ -244,7 +338,7 @@ void config(void)
      
    
    read_locations(disk);
-   list_locations();
+   //list_locations();
 
      if (NetworkConfig.espnow==0 && NetworkConfig.wifi_type<4 && netstatus==true )
      {
@@ -287,5 +381,13 @@ void config(void)
     ESP_LOGI(TAG,"         MAC             : %s" ,(char*)NetworkConfig.mac);
     ESP_LOGI(TAG,"         Free heap       : %lu" ,esp_get_free_heap_size());
     free(Current_Date_Time);
-  
+
+    uint8_t daire=0, blok = 0;
+    Daire_Read(&disk, &daire, &blok);
+    add_daire_security(daire,blok);  
+
+    Device_Read(&disk,&cihazlar);
+
+    
+
 }

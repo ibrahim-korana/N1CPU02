@@ -32,6 +32,8 @@ class Security : public Base_Function {
               status.active   = true;
               status.first    = true;
               status.status   = 0;
+              daire = 0;
+              blok = 0;
               write_status();
         }        
       };
@@ -52,12 +54,19 @@ class Security : public Base_Function {
       void tim_stop(void);
       void tim_start(void);  
       void cikis_port_active(void);
+      void set_daire(uint8_t dai, uint8_t blk) {
+        daire = dai;
+        blok = blk;
+      }
+
 
       void fire(bool stat);
       void ConvertStatus(home_status_t stt, cJSON* obj);
         
     private:
       esp_timer_handle_t qtimer = NULL;
+      uint8_t daire;
+      uint8_t blok;
       
     protected:  
       static void func_callback(void *arg, port_action_t action); 

@@ -2,7 +2,7 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-set(PROJECT_VER "1.1.1.1")
+set(PROJECT_VER "1.1.1.3")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(N1CPU02)
 
@@ -20,3 +20,7 @@ spiffs_create_partition_image(storage data FLASH_IN_PROJECT)
     # Test düzenlendi    
 # 1.1.1.1
     # IDF 5.1.2 Major upgrade	
+# 1.1.1.2  --> 4.3.2024
+    # mwater başlangıcı ile ilgili eklemeler yapıldı     
+# 1.1.1.3  --> 11.3.2024
+    # kontaktör başlangıcı ile ilgili eklemeler yapıldı     

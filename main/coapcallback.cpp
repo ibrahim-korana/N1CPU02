@@ -1,4 +1,21 @@
 
+typedef struct {
+  uint8_t sender;
+  char *data;
+  transmisyon_t trn;
+} regok_par_t;
+
+void reg_ok_task(void *arg)
+{
+  regok_par_t *par = (regok_par_t *)arg;
+  char *mm=(char*)calloc(1,strlen(par->data)+1);
+  strcpy(mm,par->data);
+  Global_Send(mm,par->sender,par->trn);
+  free(mm);
+  vTaskDelete(NULL);
+}
+
+
 void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *response, bool responsevar)
 {
     /*
@@ -30,15 +47,20 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
         JSON_getint(rcv,"id",&iid);
         device_register_t *Bag=cihazlar.cihazbul(mac);
         if (Bag!=NULL) {
+                          
                           Bag->device_id = iid; 
                           Bag->ip = Addr.to_int(ip);
                           Bag->function_count = fcount;
                           Bag->transmisyon = transmisyon;
                        } else {
-                          Bag = cihazlar.cihaz_ekle(mac,TR_UDP);
-                          Bag->device_id = iid; 
-                          Bag->ip = Addr.to_int(ip);
-                          Bag->function_count = fcount;
+                          Bag=cihazlar.cihazbul(iid); 
+                          if (Bag==NULL) {
+                            Bag = cihazlar.cihaz_ekle(iid,transmisyon);
+                            Bag->device_id = iid; 
+                            Bag->ip = Addr.to_int(ip);
+                            Bag->function_count = fcount;
+                          }
+                          
                        }
         free(mac);
         free(ip);
@@ -74,14 +96,21 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
                           Bag->ip = Addr.to_int(ip);
                           Bag->function_count = fcount;
                        } else {
-                          Bag = cihazlar.cihaz_ekle(mac,transmisyon);
-                          Bag->device_id = iid; 
-                          Bag->ip = Addr.to_int(ip);
-                          Bag->function_count = fcount;
+                          Bag=cihazlar.cihazbul(iid); 
+                          if (Bag==NULL) {
+                            Bag = cihazlar.cihaz_ekle(iid,transmisyon);
+                            Bag->device_id = iid; 
+                            Bag->ip = Addr.to_int(ip);
+                            Bag->function_count = fcount;
+                          } else {
+                            Bag->ip = Addr.to_int(ip);
+                            Bag->function_count = fcount;
+                          }
                        }
           free(mac);mac=NULL;
           free(ip);ip=NULL;
           if (IACK_ready!=NULL) xSemaphoreGive(IACK_ready);
+
       }
           
   
@@ -116,7 +145,7 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
                                   &command_Callback,
                                   disk
                               );
-
+          
           ESP_LOGI(TAG,"Sender : [%d] %d => %d Registered",sender, id000,ww);
           cJSON *root = cJSON_CreateObject();
           cJSON_AddStringToObject(root, "com", "R_ACK");
@@ -124,9 +153,14 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
           cJSON_AddNumberToObject(root, "ack_id",ww );
           char *dat = cJSON_PrintUnformatted(root);
 
+          regok_par_t rr = {};
+          rr.data = dat;
+          rr.sender = sender;
+          rr.trn = transmisyon;
           //strcpy((char *)response,dat);
-          Global_Send(dat,sender,transmisyon);
-          
+          //Global_Send(dat,sender,transmisyon);
+          xTaskCreate(reg_ok_task,"rtask",2048,&rr,5,NULL);
+          vTaskDelay(100/portTICK_PERIOD_MS);
           cJSON_free(dat);
           cJSON_Delete(root);
 
@@ -152,7 +186,7 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
     if (strcmp(command,"E_REQ")==0)
     {
       uint8_t id0 = 0;
-      JSON_getint(rcv,"dev_id",&id0);
+      JSON_getint(rcv,"id",&id0);
       if (JSON_item_control(rcv,"durum")) 
       {
         home_status_t stt = {};
@@ -160,6 +194,7 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
         {
           Base_Function *bf = function_find(id0);        
           if (bf!=NULL) {
+            //printf("%d stat\n",id0);
             json_to_status(rcv,&stt,bf->get_status()); 
             bf->remote_set_status(stt);
           }
@@ -190,6 +225,7 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
         }
       }
       if (status_ready!=NULL) xSemaphoreGive(status_ready);
+      if (STATUS_ready!=NULL) xSemaphoreGive(STATUS_ready);
     }   
 
     free(command);

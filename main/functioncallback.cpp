@@ -18,7 +18,7 @@ static void function_Callback(void *arg, home_status_t stat)
        stat.status,
        stat.active,
        aa->genel.virtual_device);
-       */
+  */    
        
   //statusu cpu1 e gönder 
   if (strcmp(aa->genel.name,"air")==0)
@@ -80,11 +80,16 @@ static void command_Callback(void *arg, home_status_t stat)
       cJSON_AddItemToObject(root, "durum", child);   
     char *dat = cJSON_PrintUnformatted(root);
     //status oluştu fonksiyon hangi cihazda ise onu bul
+    
+   // printf("Command Gidecek cihaz id %d\n",aa->genel.register_device_id);
+    Global_Send(dat,aa->genel.register_device_id,TR_SERIAL);
+    /*
     device_register_t *ch = cihazlar.cihazbul(aa->genel.register_device_id); 
     if (ch!=NULL)
       {
         Global_Send(dat,aa->genel.register_device_id,ch->transmisyon);
       }
+    */  
     vTaskDelay(50/portTICK_PERIOD_MS);
     cJSON_free(dat);
     cJSON_Delete(root);

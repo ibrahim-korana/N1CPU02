@@ -47,6 +47,8 @@
    uint8_t function_count(void); 
    void *read_gateway(Storage dsk, rs485_callback_t cb, RS485 *rs);
    Base_Function *function_find(uint8_t id);
+   Base_Function *function_find_name(const char *name);
+   void add_daire_security(uint8_t daire, uint8_t blok);
 
 
 #endif

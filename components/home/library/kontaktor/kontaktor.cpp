@@ -104,14 +104,17 @@ void Contactor::init(void)
         arg.arg = (void *) this;
         ESP_ERROR_CHECK(esp_timer_create(&arg, &qtimer)); 
         if (timer==0) timer=120;
+        set_status(status);
+        /*
         Base_Port *target = port_head_handle;
         while (target) {
             if (target->type==PORT_OUTPORT)
                 {
-                status.stat = target->get_hardware_status();
+                //status.stat = target->get_hardware_status();
                 break;
                 }
             target=target->next;
         }
+        */
     }
 }

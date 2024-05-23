@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "lwip/ip_addr.h"
+#include "esp_event.h"
 
 
 #define NETWORK_ERROR     0x001 
@@ -109,6 +110,12 @@ typedef struct device_register {
     uint8_t mac0[6];
     void *next;
 } device_register_t;
+
+typedef struct {
+  uint8_t sender;
+  char *data;
+  transmisyon_t trn;
+} response_par_t;
 
 struct function_reg_t {
     char name[20];
@@ -228,6 +235,14 @@ typedef struct
     RS485_header_t *header;
     uint8_t *data;
 } Paket_t;
+
+ESP_EVENT_DEFINE_BASE(HOME_EVENTS);
+
+typedef enum {
+    HOME_DOOR_OPEN = 0,
+    HOME_DOOR_CLOSE
+} home_event_t;
+
 
 /*
          UTIL FUNCTIONS

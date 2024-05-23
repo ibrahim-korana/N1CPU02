@@ -24,9 +24,10 @@ void MWater::timer_callback(void* arg)
     if (mthis->function_callback!=NULL) mthis->function_callback(arg, mthis->get_status()); 
 }
 
-void MWater::tim_start(void)
+void MWater::tim_start(uint8_t tm)
 {
-  ESP_ERROR_CHECK(esp_timer_start_once(qtimer, timer * 1000000));
+  //ESP_ERROR_CHECK(esp_timer_start_once(qtimer, timer * 1000000));
+  ESP_ERROR_CHECK(esp_timer_start_once(qtimer, tm * 1000000));
 }
 
 void MWater::status_on(void)
@@ -41,7 +42,7 @@ void MWater::status_on(void)
                 }
             target = target->next;
         } 
-        tim_start();
+        tim_start(25);
         status.status = 1;
     }
 }
@@ -57,7 +58,7 @@ void MWater::status_off(void)
                 }
             target = target->next;
         } 
-        tim_start();
+        tim_start(15);
         status.status = 1;
     }
 }
@@ -71,6 +72,7 @@ void MWater::set_status(home_status_t stat)
         if (status.stat) status_on();
         if (!status.stat) status_off();
         write_status();
+        ESP_LOGI(MWATER_TAG,"MWater id=%d Start Stat %d",genel.device_id,status.stat); 
         if (function_callback!=NULL) function_callback((void *)this, get_status());
     } else {
         if (command_callback!=NULL) command_callback((void *)this, stat);
@@ -84,6 +86,8 @@ void MWater::remote_set_status(home_status_t stat, bool callback_call) {
     bool chg = false;
     if (status.stat!=stat.stat) chg=true;
     if (status.active!=stat.active) chg=true;
+    if (status.status!=stat.status) chg=true;
+    //printf("mwater chg %d\n",chg);
     if (chg)
       {
          local_set_status(stat,true);
@@ -139,6 +143,7 @@ void MWater::init(void)
         arg.arg = (void *) this;
         ESP_ERROR_CHECK(esp_timer_create(&arg, &qtimer)); 
         if (timer==0 || timer>60) timer=10;
+        /*
         Base_Port *target = port_head_handle;
         while (target) {
             if (target->type == PORT_OUTPORT) 
@@ -146,10 +151,12 @@ void MWater::init(void)
                     //printf("mwater init port %s\n ",target->name);
                     //Problem set statusta
                     //target->set_status(false);
-                    status.stat = target->get_hardware_status();
+                    //status.stat = target->get_hardware_status();
                 }
             target = target->next;
         }
-        status.status = 0;   
+        */
+        status.status = 0;  
+        ESP_LOGI(MWATER_TAG,"MWater id=%d Start Stat %d",genel.device_id,status.stat); 
     }
 }

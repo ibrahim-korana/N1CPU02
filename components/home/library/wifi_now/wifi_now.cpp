@@ -118,17 +118,19 @@ void init_espnow(void)
 }
 
 void receive_callback(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int len)
+//void receive_callback(const uint8_t *mac_addr, const uint8_t *data, int len)
 {
     uint16_t crc, crc_cal = 0;
     data_t *buf = (data_t *)data;
+    uint8_t *mac_addr = esp_now_info->des_addr;
     crc = buf->crc;
     buf->crc = 0;
     crc_cal = esp_crc16_le(UINT16_MAX, (uint8_t const *)buf, len);
     if (crc_cal == crc)
     {
-        if (!esp_now_is_peer_exist(esp_now_info->src_addr)) add_peer(esp_now_info->src_addr,buf->sender);
+        if (!esp_now_is_peer_exist(mac_addr)) add_peer(mac_addr,buf->sender);
         receive_cb_t *par = (receive_cb_t *)malloc(sizeof(receive_cb_t));
-        memcpy(par->mac,esp_now_info->src_addr,MAC_LEN);
+        memcpy(par->mac,mac_addr,MAC_LEN);
         par->data = (uint8_t *)malloc(len);
         memcpy(par->data,data,len);       
         if (xQueueSend(receive_queue, ( void * ) &par, pdMS_TO_TICKS(5000) ) != pdTRUE) {
@@ -237,7 +239,7 @@ void send_task(void *arg)
             
                 if (par->status == ESP_NOW_SEND_SUCCESS) send_ok=true;
                 xSemaphoreGive(ack_sem);
-                                                
+                                                 
          } else xSemaphoreGive(pingack_sem);      
         free(par);
     }

@@ -76,8 +76,8 @@ void RS485::_sender_task(void *arg)
               {   
                   send_counter++;
                   uint8_t error = 0;
-                  uart_flush(self->get_uart_num());
-                  uart_wait_tx_done(self->get_uart_num(), RS485_READ_TIMEOUT); 
+                  //uart_flush(self->get_uart_num());
+                  //uart_wait_tx_done(self->get_uart_num(), RS485_READ_TIMEOUT); 
                   uint8_t s = uart_write_bytes(self->get_uart_num(), bff, header_size + head->data_len+3);
                   uart_wait_tx_done(self->get_uart_num(), RS485_READ_TIMEOUT); 
                   
@@ -278,7 +278,7 @@ void RS485::_event_task(void *param)
                             uart_write_bytes(mthis->get_uart_num(),hd,sizeof(RS485_header_t));
                           }
                         
-                        //printf("paket geldi %d:%d %d=%d\n",hd->total_pk,hd->current_pk, receiver_id,mthis->get_device_id()); 
+                        //printf("paket geldi %d:%d %d=%d\n",hd->total_pk,hd->current_pk, receiver,mthis->get_device_id()); 
 
                         if (receiver==mthis->get_device_id() || receiver==RS485_BROADCAST)
                            if (mthis->paket_decode(dtmp))

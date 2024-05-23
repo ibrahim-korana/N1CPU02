@@ -86,7 +86,7 @@ class Curtain : public Base_Function {
       uint8_t sure = 60;
     protected:  
        static void func_callback(void *arg, port_action_t action);  
-       static void cur_tim_callback(void* arg);            
+       static void cur_tim_callback(void* arg);          
 };
 
 #endif

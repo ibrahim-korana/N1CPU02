@@ -79,6 +79,8 @@ void Security::alarm_open(void)
     }  
     write_status();
     if (function_callback!=NULL) function_callback((void *)this, get_status());
+    //Alarm Kurulduğunda kapı kilitlenir
+    esp_event_post(HOME_EVENTS,HOME_DOOR_CLOSE,NULL,0,100 / portTICK_PERIOD_MS);
 }
 
 /*
@@ -137,6 +139,7 @@ void Security::alarm_close(void)
         target = target->next;
     }  
     write_status();
+    esp_event_post(HOME_EVENTS,HOME_DOOR_OPEN,NULL,0,100 / portTICK_PERIOD_MS);
     //if (function_callback!=NULL) function_callback((void *)this, get_status());
 }
 
@@ -215,6 +218,8 @@ void Security::ConvertStatus(home_status_t stt, cJSON* obj)
         cJSON_AddNumberToObject(obj, "color", stt.color);
         cJSON_AddStringToObject(obj, "ircom", (char*)stt.ircom);
         cJSON_AddStringToObject(obj, "irval", (char*)"alarm");
+        cJSON_AddNumberToObject(obj, "counter", daire);
+        cJSON_AddNumberToObject(obj, "temp", blok);
     }
     if (stt.active) cJSON_AddTrueToObject(obj, "act"); else cJSON_AddFalseToObject(obj, "act");
 }

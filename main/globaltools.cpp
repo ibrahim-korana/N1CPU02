@@ -89,6 +89,16 @@ void Global_Send(char *data,uint8_t sender, transmisyon_t transmisyon)
   if (transmisyon==TR_ESPNOW) EspNOW_Send(data,sender);
 }
 
+void response_task(void *arg)
+{
+  response_par_t *par = (response_par_t *)arg;
+  char *mm=(char*)calloc(1,strlen(par->data)+1);
+  strcpy(mm,par->data);
+  Global_Send(mm,par->sender,par->trn);
+  free(mm);
+  vTaskDelete(NULL);
+}
+
 void info(const char*komut, char* data)
 {
     cJSON *root = cJSON_CreateObject();
@@ -188,9 +198,10 @@ void send_status(uint8_t id, uint8_t sender)
 
     Base_Function *target = get_function_head_handle();
     while (target)
-    {
+    {     
       if (target->genel.device_id==id || id==0)
         {
+          printf("Status id %d %d\n",target->genel.device_id,id);
           cJSON *root = cJSON_CreateObject();
           cJSON_AddStringToObject(root, "com", "status");
           cJSON_AddNumberToObject(root, "id", target->genel.device_id);
@@ -201,6 +212,7 @@ void send_status(uint8_t id, uint8_t sender)
 
             while(uart.is_busy()) vTaskDelay(30/portTICK_PERIOD_MS);
             uart.Sender(dat,sender);
+            printf("%d %s\n",sender,dat);
             
           cJSON_free(dat);
           cJSON_Delete(root);  
@@ -393,12 +405,15 @@ void out_print(void)
    iot_out_list();
 }
 
-void register_all(void)
+void register_all_task(void *arg)
 {
-      //disk siliniyor
+  //disk siliniyor
+      ESP_LOGW(TAG,"Fonksiyonlar diskten diliniyor..");
       disk.function_file_format();
 
       //baglı cihazlara register emri gidiyor
+      cihazlar.cihaz_list();
+
       device_register_t *target = cihazlar.get_handle();
       cJSON *root = cJSON_CreateObject();
       cJSON_AddStringToObject(root, "com", "R_REG");
@@ -406,17 +421,33 @@ void register_all(void)
 
       while (target)
         {
-          //printf("%d %d\n",target->device_id,target->transmisyon);   
+          
+          printf("DEVICE %d %d\n",target->device_id,target->transmisyon);   
+          
           if (target->device_id>0 && target->device_id<200)
           {   
             Global_Send(dat,target->device_id,target->transmisyon);
-            ESP_LOGW(TAG,"Semaphore WAITING..");
-            xSemaphoreTake(REGOK_ready,10000/portTICK_PERIOD_MS);
+            ESP_LOGW(TAG,"%d Registration WAITING..",target->device_id);
+            if (xSemaphoreTake(REGOK_ready,10000/portTICK_PERIOD_MS)==pdTRUE)
+            {
+                 ESP_LOGW(TAG,"%d Registration completed",target->device_id);
+            } else {
+                 ESP_LOGE(TAG,"%d Registration ERROR",target->device_id);
+            }
+
           }
           target = (device_register_t *)target->next;
         }
       cJSON_free(dat);
       cJSON_Delete(root);   
+
+  vTaskDelete(NULL);
+}
+
+void register_all(void)
+{
+      xTaskCreate(register_all_task, "regall", 4096, NULL, 5, NULL); 
+      
 }
 
 void Remore_Reset(void)

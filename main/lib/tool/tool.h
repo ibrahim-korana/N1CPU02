@@ -29,6 +29,7 @@ void test01(uint16_t a_delay2, i2c_dev_t **pcf);
 void test02(uint16_t a_delay2, i2c_dev_t **pcf);
 void rs485_output_test(void);
 void rs485_input_test(void);
+void rs485_echo_test(void);
 void test_tip(i2c_dev_t **pcf, Storage *disk );
 
 #endif

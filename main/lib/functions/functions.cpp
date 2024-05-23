@@ -516,3 +516,24 @@ void *read_gateway(Storage dsk, rs485_callback_t cb, RS485 *rs)
       }
    return NULL;   
 }
+
+Base_Function *function_find_name(const char *name)
+{
+    Base_Function *target = function_head_handle;
+    while(target)
+      {
+        Base_Function *cc = (Base_Function *)target;
+        if (strcmp(cc->genel.name,name) == 0) return cc;
+        target=cc->next;
+      }
+    return NULL;
+}
+
+void add_daire_security(uint8_t daire, uint8_t blok)
+{
+    Security *sc = (Security *)function_find_name("sec");
+    if (sc!=NULL) {
+      sc->set_daire(daire,blok);
+    }
+
+}

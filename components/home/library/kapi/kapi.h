@@ -6,6 +6,8 @@
 #include "core.h"
 #include "storage.h"
 #include "classes.h"
+#include "esp_event.h"
+
 
 class Door : public Base_Function {
     public:
@@ -48,7 +50,8 @@ class Door : public Base_Function {
       void tim_start(void);
     protected:  
       static void func_callback(void *arg, port_action_t action); 
-      static void tim_callback(void* arg);       
+      static void tim_callback(void* arg); 
+      static void door_event(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);      
 };
 
 #endif

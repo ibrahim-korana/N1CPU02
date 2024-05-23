@@ -19,6 +19,7 @@ class Cihazlar
         ~Cihazlar(){};
         device_register_t *get_handle(void) {return dev_handle;}
         device_register_t *cihaz_ekle(const char *mac,transmisyon_t trns);
+        device_register_t *cihaz_ekle(uint8_t id,transmisyon_t trns);
 
         esp_err_t cihaz_sil(const char *mac);
         uint8_t cihaz_say(void);

@@ -25,7 +25,8 @@ class MWater : public Base_Function {
               status.status   = 0;
               write_status();
         }        
-        local_port_callback = &func_callback;       
+        local_port_callback = &func_callback;   
+            
       };
       ~MWater() {};
 
@@ -45,7 +46,7 @@ class MWater : public Base_Function {
       esp_timer_handle_t qtimer;
       void status_on(void);
       void status_off(void);
-      void tim_start(void);
+      void tim_start(uint8_t tm);
            
     protected:  
       static void func_callback(void *arg, port_action_t action); 

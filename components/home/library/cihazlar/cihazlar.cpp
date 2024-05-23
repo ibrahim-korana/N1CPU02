@@ -120,6 +120,27 @@ device_register_t *Cihazlar::cihaz_ekle(const char *mac,transmisyon_t trns)
   return yeni;
 }
 
+device_register_t *Cihazlar::cihaz_ekle(uint8_t id,transmisyon_t trns)
+{
+  device_register_t *target = dev_handle;
+  while(target)
+    {
+      if (target->device_id==id) {target->transmisyon= trns; return target;} 
+      target=(device_register_t *)target->next;
+    }
+  device_register_t *yeni = (device_register_t *) calloc(1, sizeof(device_register_t));
+  ESP_ERROR_CHECK(NULL == yeni);
+  memset(yeni,0,sizeof(device_register_t));
+      
+  sprintf(yeni->mac,"%012d",id);
+  yeni->device_id = id;
+  yeni->transmisyon= trns;
+  yeni->next = dev_handle;
+  yeni->socket = -1;
+  dev_handle = yeni;
+  return yeni;
+}
+
 device_register_t *Cihazlar::_cihaz_sil(device_register_t *deletedNode,const char *mac)
 {
 	device_register_t *temp;

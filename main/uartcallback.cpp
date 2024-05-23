@@ -1,4 +1,18 @@
 
+typedef struct {
+  uint8_t id;
+  uint8_t sender;
+} send0_param_t;
+
+void send_param_task(void *arg)
+{
+  send0_param_t *prm = (send0_param_t *)arg;
+ // printf("status send task\n");
+  send_status(prm->id,prm->sender);
+  vTaskDelete(NULL);
+}
+
+
 /*
     CPU1 den gelen tüm mesajlar bu fonksiyona gelecek
 */
@@ -39,7 +53,10 @@ void uart_callback(char *data)
     if (strcmp(command,"status")==0) {
                 uint8_t id=0;
                 JSON_getint(rcv,"id",&id);
-                send_status(id,sender);
+                send0_param_t pp = {};
+                pp.id = id;
+                pp.sender = sender;
+                xTaskCreate(send_param_task, "spt", 4096, &pp, 5, NULL); 
                                     }
                               
     if (strcmp(command,"event")==0) event_action(rcv);

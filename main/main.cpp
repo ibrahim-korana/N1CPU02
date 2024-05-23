@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_ota_ops.h"
+#include "esp_event.h"
 
 #define ESP_INTR_FLAG_DEFAULT 0
 
@@ -36,7 +37,7 @@ static const char *TAG = "ANAKUTU_CPU2";
 #include "esp_https_ota.h"
 
 
-#define LED 0
+#define LED (gpio_num_t)0 
 #define CPU1_RESET 23
 #define I2CINT GPIO_NUM_33
 #define BUTTON1 34
@@ -103,6 +104,8 @@ void broadcast_I_REQ(void);
 void Reset_Broadcast(void);
 void info(const char*komut, char* data);
 void Global_Send(char *data,uint8_t sender, transmisyon_t transmisyon);
+void response_task(void *arg);
+
 #ifdef ATMEGA_CONTROL
   static void IRAM_ATTR I2c_IntHandler(void* arg);
   static void read_task(void* arg);
@@ -146,6 +149,7 @@ SemaphoreHandle_t register_ready;
 SemaphoreHandle_t status_ready;
 SemaphoreHandle_t IACK_ready;
 SemaphoreHandle_t REGOK_ready;
+SemaphoreHandle_t STATUS_ready;
 
 
 #include "globaltools.cpp"
@@ -207,6 +211,44 @@ static void termostat__poll(void *arg)
     }
 }
 
+void full_status_read(void *arg)
+{
+  Base_Function *target = get_function_head_handle();
+  STATUS_ready = xSemaphoreCreateBinary();
+  assert(STATUS_ready);
+  uint8_t cnt = 0; 
+  bool next=true;
+    while (target)
+    {     
+      if (target->genel.register_device_id>0)
+        {
+          //printf("Status id %d %d\n",target->genel.device_id,target->genel.register_device_id);
+          cJSON *root = cJSON_CreateObject();
+          cJSON_AddStringToObject(root, "com", "S_GET");
+          cJSON_AddNumberToObject(root, "id", target->genel.device_id);
+          char *dat = cJSON_PrintUnformatted(root); 
+            device_register_t *tt = cihazlar.cihazbul(target->genel.register_device_id);
+            if (tt!=NULL) {
+                Global_Send(dat,target->genel.register_device_id,tt->transmisyon);
+                if (xSemaphoreTake(STATUS_ready,500/portTICK_PERIOD_MS)==pdTRUE)
+                {
+                  next = true;
+                }
+                else {
+                  next=false;
+                  if (++cnt>4) {
+                    target=NULL;
+                    ESP_LOGE(TAG,"Status okuma prosedürü başarılı olamadı. Client cevap vermiyor.");
+                               }
+                }             
+            } else {target=NULL;next=false;}
+          cJSON_free(dat);
+          cJSON_Delete(root);  
+        }    
+      if (next) target=target->next;
+    }
+    vTaskDelete(NULL);
+}
 
 static void late_process(void *arg)
 {
@@ -217,25 +259,23 @@ static void late_process(void *arg)
       {
        // Net.wifi_update_clients(); 
 
+       cihazlar.cihaz_list();
 
         //remote cihazlar hazırlandı ancak statusları belli degil
         //statuslarını okuman lazım
-        //full_status_read();        
+        xTaskCreate(full_status_read,"FullSt",4096,NULL,5,NULL);        
         ESP_LOGW(TAG,"Late Process END");
+        cihazlar.start(true);
       } ;//else refresh_device();
 
-    cihazlar.init(&rs485); 
-    cihazlar.start(true);  
-
-   
+    
       esp_timer_handle_t ztimer = NULL;
       esp_timer_create_args_t arg1 = {};
       arg1.callback = &termostat__poll;
       arg1.name = "tpoll";
       ESP_ERROR_CHECK(esp_timer_create(&arg1, &ztimer));
       ESP_ERROR_CHECK(esp_timer_start_periodic(ztimer, 30000000));
-      termostat__poll(NULL);
-    
+      termostat__poll(NULL);    
 }
 
 
@@ -259,6 +299,13 @@ extern "C" void app_main()
 
     config();
 
+    cihazlar.init(&rs485); 
+    cihazlar.start(true); 
+    REGOK_ready = xSemaphoreCreateBinary();
+    assert(REGOK_ready);
+
+    broadcast_I_REQ();
+
     //inout_test(pcf);
 
 
@@ -277,21 +324,21 @@ extern "C" void app_main()
       ESP_LOGW(TAG,"10sn Late Process waiting..");
 
    //rs485_output_test();
+   //rs485_input_test();
 
    // test01(50, pcf);
     //test02(50, pcf);
         
 
-    REGOK_ready = xSemaphoreCreateBinary();
-    assert(REGOK_ready);
-
-    broadcast_I_REQ();
+    
 
     //uint8_t _aa=0;
     //xQueueSend(ter_que, &_aa, ( TickType_t ) 10 );
     #ifdef ATMEGA_CONTROL
        gpio_intr_enable(I2CINT);	
     #endif   
+
+    printf("BASLADI\n");
 
     while(true) 
     {
@@ -308,8 +355,14 @@ extern "C" void app_main()
             bool LL = true;
             while (gpio_get_level((gpio_num_t)BUTTON1)==0)
               {
-                  //CPU1_Reset(); 
-                  
+                  //CPU1_Reset();
+                  //printf("post start\n"); 
+                  //esp_event_post(HOME_EVENTS,HOME_DOOR_OPEN,NULL,0,100 / portTICK_PERIOD_MS);
+                  //printf("post end\n");
+                  //vTaskDelay(2000/portTICK_PERIOD_MS); 
+
+                  register_all();
+
                   currentMicros = esp_timer_get_time()-startMicros;
                   if ((currentMicros%200000)==0) {gpio_set_level((gpio_num_t)LED, LL);LL=!LL;} 
                   if ((currentMicros)>5000000) {
@@ -317,7 +370,7 @@ extern "C" void app_main()
                       disk.write_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig),0); 
                       esp_restart();   
                                                 }   
-                  vTaskDelay(10/portTICK_PERIOD_MS); 
+                  vTaskDelay(2000/portTICK_PERIOD_MS); 
                                
               }
          }

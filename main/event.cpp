@@ -127,11 +127,7 @@ void all_event(void* handler_args, esp_event_base_t base, int32_t id, void* even
                 wifi.Station_connect();
               }
             
-          }
-        
-        
-
-        
+          }      
     }
 }
 

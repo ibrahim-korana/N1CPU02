@@ -84,8 +84,8 @@ void UART::_sender_task(void *arg)
               {   
                   send_counter++;
                   uint8_t error = 0;
-                  uart_flush(self->get_uart_num());
-                  uart_wait_tx_done(self->get_uart_num(), UART_READ_TIMEOUT); 
+                  //uart_flush(self->get_uart_num());
+                  //uart_wait_tx_done(self->get_uart_num(), UART_READ_TIMEOUT); 
                   uint8_t s = uart_write_bytes(self->get_uart_num(), bff, header_size + head->data_len+1);
                   uart_wait_tx_done(self->get_uart_num(), UART_READ_TIMEOUT); 
                   uart_write_bytes(self->get_uart_num(), "##", 2); 
@@ -139,7 +139,7 @@ return_type_t UART::Sender(const char *data, uint8_t receiver, bool response)
     return_type_t ret = RET_OK;
     if (busy) return RET_BUSY;
     busy=true;
-    //printf("UART GIDEN %s\n",data);
+    ESP_LOGI(UART_TAG,"CPU1 GIDEN >> receiver: [%d] %s",receiver, data);
     //while (ARX_Stat(255)) {vTaskDelay(50 / portTICK_PERIOD_MS);}
     Data_t *param = (Data_t *) malloc(sizeof(Data_t));
     param->data = (uint8_t *)malloc(strlen((char*)data)+1);
