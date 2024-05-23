@@ -48,7 +48,7 @@ void ESP32Time::setTimeStruct(tm t) {
 	setTime(timeSinceEpoch, 0); 
 }
 
-/*!
+/*!    
     @brief  set the internal RTC time
     @param  epoch
             epoch time in seconds
