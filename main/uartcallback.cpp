@@ -49,6 +49,7 @@ void uart_callback(char *data)
     }
   
     if (strcmp(command,"intro")==0) xTaskCreate(send_intro, "intro", 4096, NULL, 5, NULL);
+    if (strcmp(command,"COM_names")==0) send_names();
     if (strcmp(command,"sintro")==0) send_sintro((char *)response);
     if (strcmp(command,"status")==0) {
                 uint8_t id=0;
@@ -144,6 +145,36 @@ void uart_callback(char *data)
           free(par0);
       }
 
+    if (strcmp(command,"E_REQ")==0)
+    {
+      uint8_t id0 = 0;
+      JSON_getint(rcv,"id",&id0);
+      if (JSON_item_control(rcv,"durum")) 
+      {
+        home_status_t stt = {};
+         ESP_LOGI(TAG,"E_REQ geldi id=%d",id0);
+        if (id0>0)
+        {
+          Base_Function *bf = function_find(id0);        
+          if (bf!=NULL) {
+            //printf("%d stat\n",id0);
+            json_to_status(rcv,&stt,bf->get_status()); 
+            bf->remote_set_status(stt);
+          }
+        } else {
+           //eger id 0 ise statusu tum sensorlere gönder.
+           Base_Function *bf = get_function_head_handle();
+           while (bf)
+              {
+                json_to_status(rcv,&stt,bf->get_status()); 
+                //ESP_LOGI(TAG,"send %s %d ",bf->genel.name, bf->genel.device_id);                
+                bf->set_sensor((char*)stt.irval,stt);
+                bf = bf->next;
+              }
+        }
+      }
+    }  
+
     free(command);  
     cJSON_Delete(rcv);  
 
@@ -158,4 +189,44 @@ void uart_callback(char *data)
     
     
    free(response);
+}
+
+//
+void udp_rec_task(void *arg)
+{
+
+    char *tx = (char *)arg;
+    char *data;
+    if(asprintf(&data,"%s",tx)>-1)
+    {
+      coap_callback(data, 1, TR_UDP, NULL, false);
+      free(data);
+    }  
+//    printf("UDP Task EXIT\n");  
+  vTaskDelete(NULL);
+}
+
+
+static void on_udp_recv(void *handler_arg, esp_event_base_t base, int32_t id,
+                    void *event_data)
+{
+     if (event_data == NULL) {
+        return;
+    }
+    udp_msg_t *recv = (udp_msg_t *)event_data;
+    char *txt = (char*)calloc(1,recv->len+1);
+    memcpy(txt,recv->payload,recv->len);
+    
+    ESP_LOGI(TAG, "Received %d bytes from %s:%d", recv->len,
+             udp_server.remote_ipstr(recv->remote), udp_server.remote_port(recv->remote));
+   // ESP_LOG_BUFFER_HEXDUMP(TAG, recv->payload, recv->len, ESP_LOG_INFO);
+    ESP_LOGI(TAG," << %s",txt);
+   
+    //uart_callback(txt);
+
+    xTaskCreate(&udp_rec_task, "aaa_task", 4096, txt, tskIDLE_PRIORITY, NULL);
+    vTaskDelay(50/portTICK_PERIOD_MS);
+
+    free(txt);
+ 
 }

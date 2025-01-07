@@ -1,4 +1,7 @@
 
+
+#include "air.h"
+
 typedef struct {
   uint8_t sender;
   char *data;
@@ -12,6 +15,24 @@ void reg_ok_task(void *arg)
   strcpy(mm,par->data);
   Global_Send(mm,par->sender,par->trn);
   free(mm);
+  vTaskDelete(NULL);
+}
+
+void Gonder(void *arg)
+{
+  char *dat = (char *)arg;
+  char *data;
+  if (asprintf(&data,"%s",dat)>-1)
+  {
+   // printf("Giden %s\n",data);
+
+    while(uart.is_busy()) vTaskDelay(50/portTICK_PERIOD_MS);
+    return_type_t pp = uart.Sender(data,253);
+    if (pp!=RET_OK) printf("PAKET GÖNDERİLEMEDİ. Error:%d\n",pp);
+    vTaskDelay(50/portTICK_PERIOD_MS);
+    udp_server.send_broadcast((uint8_t *)data,strlen(data)); 
+    free(data);
+  } 
   vTaskDelete(NULL);
 }
 
@@ -194,7 +215,6 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
         {
           Base_Function *bf = function_find(id0);        
           if (bf!=NULL) {
-            //printf("%d stat\n",id0);
             json_to_status(rcv,&stt,bf->get_status()); 
             bf->remote_set_status(stt);
           }
@@ -203,13 +223,69 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
            Base_Function *bf = get_function_head_handle();
            while (bf)
               {
-                json_to_status(rcv,&stt,bf->get_status());                 
+                json_to_status(rcv,&stt,bf->get_status()); 
+                //ESP_LOGI(TAG,"send %s %d ",bf->genel.name, bf->genel.device_id);                
                 bf->set_sensor((char*)stt.irval,stt);
                 bf = bf->next;
               }
         }
       }
     }   
+
+  if (strcmp(command,"V_STAT")==0)
+    {
+      uint8_t id0 = 0;
+      char *nm = (char*)malloc(30);
+      JSON_getint(rcv,"id",&id0);
+      JSON_getstring(rcv,"name",nm,29);
+      if (id0==0)
+      {
+        Base_Function *bf = get_function_head_handle();
+        while (bf)
+        {
+          if (bf->find_port(nm))
+          {
+            //printf("V_STAT %s %d %s\n",nm,bf->genel.device_id,bf->genel.name);
+            if(strcmp(bf->genel.name,"lamp")==0)
+            {
+              cJSON *root1 = cJSON_CreateObject();
+              cJSON_AddStringToObject(root1, "com", "stat");
+              cJSON_AddNumberToObject(root1, "dev_id", bf->genel.device_id);
+              cJSON_AddStringToObject(root1, "name", nm);
+              cJSON_AddNumberToObject(root1,"stat",bf->get_status().stat);
+              char *dat1 = cJSON_PrintUnformatted(root1);
+              xTaskCreate(Gonder,"gondertask",2048,dat1,5,NULL);
+              vTaskDelay(100/portTICK_PERIOD_MS);
+              free(dat1);
+              free(root1);
+              break;
+            }
+            if(strcmp(bf->genel.name,"air")==0)
+            {
+              cJSON *root1 = cJSON_CreateObject();
+              cJSON_AddStringToObject(root1, "com", "stat");
+              cJSON_AddNumberToObject(root1, "dev_id", bf->genel.device_id);
+              cJSON_AddStringToObject(root1, "name", nm);
+              Air *bbb = (Air *)bf;
+              bbb->durum_to_status();
+              cJSON_AddNumberToObject(root1,"temp",bbb->get_status().temp);
+              cJSON_AddNumberToObject(root1,"stemp",bbb->get_status().set_temp);
+              cJSON_AddNumberToObject(root1,"coun",bbb->get_status().counter);
+
+              char *dat1 = cJSON_PrintUnformatted(root1);
+              xTaskCreate(Gonder,"gondertask",2048,dat1,5,NULL);
+              vTaskDelay(100/portTICK_PERIOD_MS);
+              free(dat1);
+              free(root1);
+              break;
+            }
+          }
+          bf = bf->next;
+        }
+      }
+      free(nm);
+    }  
+
 
     if (strcmp(command,"S_ACK")==0)
     {

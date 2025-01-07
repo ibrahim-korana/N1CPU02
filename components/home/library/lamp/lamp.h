@@ -38,6 +38,7 @@ class Lamp : public Base_Function {
       void get_status_json(cJSON* obj) override;
       bool get_port_json(cJSON* obj) override;
       void init(void) override;
+      void set_sensor(char *name, home_status_t stat);
 
       void fire(bool stat);
       void ConvertStatus(home_status_t stt, cJSON* obj);

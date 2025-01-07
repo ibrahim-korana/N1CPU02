@@ -189,6 +189,14 @@ class Base_Function
       virtual void gas(bool stat) {}; 
       virtual void set_sensor(char *name, home_status_t stat) {}; 
       virtual void senaryo(char *par) {};
+      bool find_port(char *name) {
+        Base_Port *target = port_head_handle;
+        while (target) {
+          if (strcmp(target->name,name)==0) return true;
+          target = target->next;
+        }
+        return false;
+      };
       
 
       virtual void ConvertStatus(home_status_t stt, cJSON* obj) {};

@@ -49,6 +49,7 @@ set(LIBRARY_SRCS
   library/asansor/asansor.cpp
   library/piston/piston.cpp
   library/kapi/kapi.cpp
+  library/garage/garage.cpp
   )
 set(includedirs
   library/core
@@ -83,6 +84,7 @@ set(includedirs
   library/asansor
   library/piston
   library/kapi
+  library/garage
   )
 
 set(srcs ${LIBRARY_SRCS})

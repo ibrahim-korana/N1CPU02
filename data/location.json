@@ -1,8 +1,5 @@
 {
-    "locations": [
-       {"name":"Sistem","page":1},
-       {"name":"Ust Kat","page":2},
-       {"name":"Alt Kat","page":3},
-       {"name":"Yatak Odası","page":4}
+    "locations":[
+        {"name":"ICe Akıllı Ev","page":0}
     ]
 }

@@ -192,7 +192,7 @@ void iot_out_list(void)
         if (target->type==1) 
            {
               out_8574_config_t *cfg = (out_8574_config_t *) target->hardware_data;
-              printf("PCF ADRES %X pin num = %d rev=%d Klemens=%d",cfg->device->addr, cfg->pin_num,cfg->reverse,rev_out_pin_convert(cfg->device->addr-0x20, cfg->pin_num));
+              printf("PCF ADRES %X pin num = %d rev=%d Klemens=%d reg=%02X",cfg->device->addr, cfg->pin_num,cfg->reverse,rev_out_pin_convert(cfg->device->addr-0x20, cfg->pin_num), cfg->device->reg);
            }
         printf("\n");   
         target = target->next;

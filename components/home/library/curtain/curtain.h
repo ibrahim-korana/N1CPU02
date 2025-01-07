@@ -51,6 +51,8 @@ class Curtain : public Base_Function {
 
       void set_status(home_status_t stat);
       void remote_set_status(home_status_t stat, bool callback_call=true);
+
+      void set_sensor(char *name, home_status_t stat);
       
       //Statusu json olarak dondurur
       void get_status_json(cJSON* obj) override;

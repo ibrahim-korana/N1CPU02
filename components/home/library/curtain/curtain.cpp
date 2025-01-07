@@ -184,6 +184,25 @@ void Curtain::remote_set_status(home_status_t stat, bool callback_call) {
       }      
 }
 
+void Curtain::set_sensor(char *name, home_status_t stat)
+{
+    if (!genel.virtual_device)
+    {
+        Base_Port *target = port_head_handle;
+        while (target) {
+            if (target->type == PORT_VIRTUAL) 
+                {
+                    if (strcmp(target->name,name)==0) {
+                       home_status_t stt = get_status();
+                       stt.status = stat.status;
+                       set_status(stt);
+                    } 
+                }
+            target = target->next;
+        } 
+    }
+}
+
 void Curtain::ConvertStatus(home_status_t stt, cJSON *obj)
 {
     cJSON_AddNumberToObject(obj, "status", stt.status);

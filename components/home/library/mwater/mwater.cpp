@@ -133,6 +133,18 @@ void MWater::senaryo(char *par)
       }  
 }
 
+void MWater::stop(void)
+{
+    status.stat = true;
+    set_status(status);
+}
+
+void MWater::alarm_handler(void* handler_args, esp_event_base_t base, int32_t id, void* event_data)
+{
+    MWater *ths = (MWater *)handler_args;
+    ESP_LOGW(MWATER_TAG,"Mesaj MWATERa geldi");
+    ths->stop();
+}
 void MWater::init(void)
 {
     if (!genel.virtual_device)
@@ -141,6 +153,7 @@ void MWater::init(void)
         arg.callback = &timer_callback;
         arg.name = "tim0";
         arg.arg = (void *) this;
+
         ESP_ERROR_CHECK(esp_timer_create(&arg, &qtimer)); 
         if (timer==0 || timer>60) timer=10;
         /*
@@ -157,6 +170,8 @@ void MWater::init(void)
         }
         */
         status.status = 0;  
+
+        ESP_ERROR_CHECK(esp_event_handler_instance_register(SECURITY_EVENTS, WATER_EVENT, alarm_handler, (void*)this, NULL));
         ESP_LOGI(MWATER_TAG,"MWater id=%d Start Stat %d",genel.device_id,status.stat); 
     }
 }

@@ -207,6 +207,27 @@ void Lamp::xtim_callback(void* arg)
 }
 
 
+void Lamp::set_sensor(char *name, home_status_t stat)
+{
+    if (!genel.virtual_device)
+    {
+        Base_Port *target = port_head_handle;
+        //ESP_LOGI(LAMP_TAG,"PORT ARANIYOR");
+        while (target) {
+            if (target->type == PORT_VIRTUAL) 
+                {
+                    //ESP_LOGI(LAMP_TAG,"PORT BULUNDU %s=%s",target->name, name);
+                    if (strcmp(target->name,name)==0) {
+                       // ESP_LOGI(LAMP_TAG,"%d VIRTUAL PORT %s",genel.device_id,name);
+                         set_status(stat);
+                    } 
+                }
+            target = target->next;
+        } 
+    }
+}
+
+
 void Lamp::lamp_tim_callback(void* arg)
 {   
     //lamba/ları kapat
@@ -237,17 +258,22 @@ void Lamp::init(void)
         arg1.arg = (void *) this;
         ESP_ERROR_CHECK(esp_timer_create(&arg1, &xtimer)); 
         disk.read_status(&status,genel.device_id);
+        status.active = 1;
         Base_Port *target = port_head_handle;
+        
+       
         while (target) {
             if (target->type==PORT_OUTPORT)
                 {
-                status.stat = target->get_hardware_status();
+                //status.stat = target->get_hardware_status();
+                target->set_status(status.stat);
                 break;
                 }
             target=target->next;
         }
+        
 
-        //printf("ID %d HW Stat=%d\n",genel.device_id,status.stat);
+       // printf("ID %d HW Stat=%d  Act=%d\n",genel.device_id,status.stat,status.active);
 
         if ((global & 0x02) == 0x02) 
         {

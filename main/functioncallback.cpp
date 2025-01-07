@@ -1,5 +1,5 @@
 
-
+#include "air.h"
 /*
    Fonksiyonlarda bir aksiyon oluştuğunda fonksiyon bu prosedürü çagırır.
    Bu prosedür fonksiyonun durumunu cpu1 e gönderir.
@@ -42,6 +42,8 @@ static void function_Callback(void *arg, home_status_t stat)
           tmp = tmp->next;
         }
     }
+
+  
   cJSON *root = cJSON_CreateObject();
   cJSON *child = cJSON_CreateObject();
   cJSON_AddStringToObject(root, "com", "event");
@@ -55,6 +57,69 @@ static void function_Callback(void *arg, home_status_t stat)
   if (pp!=RET_OK) printf("PAKET GÖNDERİLEMEDİ. Error:%d\n",pp);
   vTaskDelay(50/portTICK_PERIOD_MS); 
 
+
+  if (strcmp(aa->genel.name,"lamp")==0)
+  {
+     Base_Port *target = aa->port_head_handle;
+     while (target) 
+          {
+            if (target->type == PORT_VIRTUAL) 
+                {
+                    
+                    cJSON *root1 = cJSON_CreateObject();
+                    cJSON_AddStringToObject(root1, "com", "stat");
+                    cJSON_AddNumberToObject(root1, "dev_id", aa->genel.device_id);
+                   // cJSON_AddNumberToObject(root1, "sw_id", atoi((char*)target->name[3]));
+                    cJSON_AddStringToObject(root1, "name", target->name);
+                    cJSON_AddNumberToObject(root1,"stat",stat.stat);
+                    char *dat1 = cJSON_PrintUnformatted(root1);
+                    ESP_LOGI("485","Gidiyor %s",dat1);
+                   
+                    Global_Send(dat1,255,TR_SERIAL);
+
+                    while(uart.is_busy()) vTaskDelay(50/portTICK_PERIOD_MS);
+                    return_type_t pp = uart.Sender(dat1,253);
+                    if (pp!=RET_OK) printf("PAKET GÖNDERİLEMEDİ. Error:%d\n",pp);
+                    vTaskDelay(50/portTICK_PERIOD_MS);
+
+                    udp_server.send_broadcast((uint8_t *)dat1,strlen(dat1)); 
+                    
+                    cJSON_free(dat1);
+                    cJSON_Delete(root1); 
+                }
+            target = target->next;    
+          }                   
+  } 
+
+  if (strcmp(aa->genel.name,"air")==0)
+  {
+     Base_Port *target = aa->port_head_handle;
+     while (target) 
+          {
+            if (target->type == PORT_VIRTUAL) 
+                {                    
+                    //printf("Counter %02X\n",stat.counter);
+                    Air *a0 = (Air *) arg; 
+                    a0->durum_to_status();
+                    home_status_t k0 = a0->get_status();
+                    cJSON *root1 = cJSON_CreateObject();
+                    cJSON_AddStringToObject(root1, "com", "stat");
+                    cJSON_AddStringToObject(root1, "name", target->name);
+                    cJSON_AddNumberToObject(root1,"stemp",k0.set_temp);
+                    //cJSON_AddNumberToObject(root1,"status",stat.status);
+                    cJSON_AddNumberToObject(root1,"coun",k0.counter);
+                    char *dat1 = cJSON_PrintUnformatted(root1);
+                    ESP_LOGI("485/Udp","Set Gidiyor %s",dat1);                  
+                    Global_Send(dat1,255,TR_SERIAL);
+                    udp_server.send_broadcast((uint8_t *)dat1,strlen(dat1));
+                    cJSON_free(dat1);
+                    cJSON_Delete(root1); 
+                }
+            target = target->next;    
+          }        
+           
+  } 
+ 
   cJSON_free(dat);
   cJSON_Delete(root); 
 }

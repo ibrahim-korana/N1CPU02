@@ -53,7 +53,7 @@ const char* get_id_string(esp_event_base_t base, int32_t id)
 }
 void all_event(void* handler_args, esp_event_base_t base, int32_t id, void* event_data)
 {
-    ESP_LOGW(TAG, "%lu %s:%s", id , base, get_id_string(base, id));
+   // ESP_LOGW(TAG, "%lu %s:%s", id , base, get_id_string(base, id));
     //if (GlobalConfig.comminication==TR_UDP)
     {
         if (base==IP_EVENT)

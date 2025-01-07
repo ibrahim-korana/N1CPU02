@@ -30,8 +30,11 @@ void network_default_config(void)
      NetworkConfig.upgrade = 0;
 
      //NetworkConfig.wifi_type = HOME_WIFI_STA;
-     //strcpy((char *)NetworkConfig.wifi_ssid,(char *)"IMS_YAZILIM");
-     //strcpy((char *)NetworkConfig.wifi_pass,(char *)"mer6514a4c");
+     if (NetworkConfig.wifi_type==HOME_WIFI_STA)
+     {
+      strcpy((char *)NetworkConfig.wifi_ssid,(char *)"ice");
+      strcpy((char *)NetworkConfig.wifi_pass,(char *)"ice12345");
+     }
 
      disk.file_control(NETWORK_FILE);
      disk.write_file(NETWORK_FILE,&NetworkConfig,sizeof(NetworkConfig),0);
@@ -108,8 +111,15 @@ void config(void)
     io_conf.pin_bit_mask = (1ULL<<LED) | (1ULL<<CPU1_RESET);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE; 
-
     gpio_config(&io_conf);
+
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.pin_bit_mask =  (1ULL<<HARD_RESET);
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE; 
+    gpio_config(&io_conf);
+    gpio_set_level(HARD_RESET,0);
+
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL<<BUTTON1);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -128,7 +138,6 @@ void config(void)
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE; 
     gpio_config(&io_conf);
 
-
       for (int i = 0; i < 5; i++)
       {
         gpio_set_level(LED,1);
@@ -138,14 +147,32 @@ void config(void)
       }
       
 
-    //------------------- Pcf init ------------------
+    //------------------- Pcf init -----------------
 
       gpio_set_level((gpio_num_t)LED, 1);
       esp_err_t err0 = ESP_OK, err1 = ESP_OK, err2 = ESP_OK;
-      err0 = pcf_init(&pcf0, 0x20, 5, true, (gpio_num_t)LED) ;
-      err1 = pcf_init(&pcf1, 0x21, 5, true,(gpio_num_t)LED) ;
+
       err2 = pcf_init(&pcf2, 0x22, 5, true,(gpio_num_t)LED) ;
+      err1 = pcf_init(&pcf1, 0x21, 5, true,(gpio_num_t)LED) ;       
+      err0 = pcf_init(&pcf0, 0x20, 5, true, (gpio_num_t)LED) ;
+      
+      
       gpio_set_level((gpio_num_t)LED, 0);
+
+
+      if (err0!=ESP_OK) printf("0x20 ULASILAMIYOR\n"); else printf("0x20 SAGLAM\n");
+      if (err1!=ESP_OK) printf("0x21 ULASILAMIYOR\n"); else printf("0x21 SAGLAM\n");
+      if (err2!=ESP_OK) printf("0x22 ULASILAMIYOR\n"); else printf("0x22 SAGLAM\n");
+
+   //   err0=ESP_OK;
+
+      if (err0!=ESP_OK || err1!=ESP_OK || err2!=ESP_OK)
+      {
+        //External reset ucunu aktive et
+        ESP_LOGE(TAG,"HARD RESET ACTIVE");
+        gpio_set_level(HARD_RESET,1);
+        esp_restart();
+      }
       ESP_ERROR_CHECK (err0);
       ESP_ERROR_CHECK (err1);
       ESP_ERROR_CHECK (err2);
@@ -153,7 +180,16 @@ void config(void)
       //#undef PCF_4
 
       #ifdef PCF_4
-          ESP_ERROR_CHECK (pcf_init(&pcf4, 0x23, 10, true,(gpio_num_t)LED)) ;
+          esp_err_t err3 = ESP_OK;
+          err3 = pcf_init(&pcf4, 0x23, 10, true,(gpio_num_t)LED);  
+          if (err3!=ESP_OK)
+          {
+            //External reset ucunu aktive et
+            ESP_LOGE(TAG,"HARD RESET ACTIVE");
+            gpio_set_level(HARD_RESET,1);
+            while(1);
+          }
+          ESP_ERROR_CHECK (err3) ;
           ESP_LOGW(TAG, "EXTENDED PCF AKTIF");
       #else
           //&pcf4 = NULL; 
@@ -210,6 +246,7 @@ void config(void)
     //---------STORAGE ------------
     ESP_ERROR_CHECK (!disk.init());
     //disk.format();
+    //disk.status_file_format();
 
     disk.read_file(NETWORK_FILE,&NetworkConfig,sizeof(NetworkConfig), 0);
     if (NetworkConfig.home_default==0 ) {
@@ -346,6 +383,11 @@ void config(void)
           tcpserver.Start(&NetworkConfig,&GlobalConfig,TCP_PORT, &coap_callback,&cihazlar);
           ESP_LOGI(TAG, "BROADCAST SERVER START");
           broadcast.Start(&NetworkConfig,&GlobalConfig,UDP_PORT, &broadcast_callback);
+          esp_wifi_set_ps(WIFI_PS_NONE);
+          udp_server.start(0xD002);
+          ESP_ERROR_CHECK(esp_event_handler_register(UDP_EVENT, UDP_EVENT_RECV, on_udp_recv, NULL));
+          esp_wifi_set_ps(WIFI_PS_NONE);
+
           
           if (GlobalConfig.http_start==1)
           {

@@ -243,6 +243,7 @@ static esp_err_t i2c_setup_port(const i2c_dev_t *dev)
 esp_err_t i2c_dev_probe(const i2c_dev_t *dev, i2c_dev_type_t operation_type)
 {
     if (!dev) return ESP_ERR_INVALID_ARG;
+    uint8_t in_data, in_size = 1;
 
     //SEMAPHORE_TAKE(dev->port);
 
@@ -252,6 +253,7 @@ esp_err_t i2c_dev_probe(const i2c_dev_t *dev, i2c_dev_type_t operation_type)
         i2c_cmd_handle_t cmd = i2c_cmd_link_create();
         i2c_master_start(cmd);
         i2c_master_write_byte(cmd, dev->addr << 1 | (operation_type == I2C_DEV_READ ? 1 : 0), true);
+        i2c_master_read(cmd, &in_data, in_size, I2C_MASTER_LAST_NACK);
         i2c_master_stop(cmd);
 
         res = i2c_master_cmd_begin(dev->port, cmd, pdMS_TO_TICKS(CONFIG_I2CDEV_TIMEOUT));

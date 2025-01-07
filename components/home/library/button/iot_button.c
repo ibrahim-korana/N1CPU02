@@ -217,7 +217,7 @@ void iot_button_list(void)
         if (target->type==2) 
            {
               button_8574_config_t *cfg = (button_8574_config_t *) target->hardware_data;
-              printf("OKUMA ADRES %X pin num = %d ",cfg->device->addr, cfg->pin_num);
+              printf("OKUMA ADRES %X pin num = %d reg = %02X",cfg->device->addr, cfg->pin_num, cfg->device->reg);
            }
         printf("\n");   
         target = target->next;

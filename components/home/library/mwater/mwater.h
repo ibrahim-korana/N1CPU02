@@ -8,6 +8,8 @@
 #include "classes.h"
 
 
+
+
 class MWater : public Base_Function {
     public:
       MWater(int id, function_callback_t cb, Storage dsk) {
@@ -41,6 +43,8 @@ class MWater : public Base_Function {
       void fire(bool stat);
       void senaryo(char *par);
       void ConvertStatus(home_status_t stt, cJSON* obj);
+
+      void stop(void);
         
     private:
       esp_timer_handle_t qtimer;
@@ -51,6 +55,7 @@ class MWater : public Base_Function {
     protected:  
       static void func_callback(void *arg, port_action_t action); 
       static void timer_callback(void* arg); 
+      static void alarm_handler(void* handler_args, esp_event_base_t base, int32_t id, void* event_data);
 };
 
 #endif

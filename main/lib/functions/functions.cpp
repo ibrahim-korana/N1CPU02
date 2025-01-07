@@ -17,6 +17,7 @@
 #include "asansor.h"
 #include "piston.h"
 #include "kapi.h"
+#include "garage.h"
 
 #include "../tool/tool.h"
 
@@ -163,6 +164,7 @@ void *add_function(uint8_t a_id, const char *a_name, const char *au_name, uint8_
       if (strcmp(a_name,"elev")==0) bb0 = (Asansor *) new Asansor(a_id,fun_cb, dsk);
       if (strcmp(a_name,"pis")==0) bb0 = (Piston *) new Piston(a_id,fun_cb, dsk);
       if (strcmp(a_name,"door")==0) bb0 = (Door *) new Door(a_id,fun_cb, dsk);
+      if (strcmp(a_name,"gara")==0) bb0 = (Garage *) new Garage(a_id,fun_cb, dsk);
     //---------------------
     if (bb0!=NULL)    
       {

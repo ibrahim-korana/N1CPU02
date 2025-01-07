@@ -119,10 +119,12 @@ void Onoff::init(void)
     if (!genel.virtual_device)
     {
         Base_Port *target = port_head_handle;
+        disk.read_status(&status,genel.device_id);
         while (target) {
             if (target->type==PORT_OUTPORT)
                 {
-                status.stat = target->get_hardware_status();
+                //status.stat = target->get_hardware_status();
+                target->set_status(status.stat);
                 break;
                 }
             target=target->next;

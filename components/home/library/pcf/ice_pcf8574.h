@@ -16,8 +16,8 @@ esp_err_t pcf8574_port_read(i2c_dev_t *dev, uint8_t *val);
 esp_err_t pcf8574_port_write(i2c_dev_t *dev, uint8_t value);
 esp_err_t pcf8574_pin_write(i2c_dev_t *dev, uint8_t pin, uint8_t val);
 uint8_t pcf8574_pin_read(i2c_dev_t *dev, uint8_t pin);
-
-
+//void pcf8574_set_direction(i2c_dev_t *dev,uint8_t pin, uint8_t dir);
+//uint8_t pcf8574_get_direction(i2c_dev_t *dev) {return dev->reg;} 
 
 #ifdef __cplusplus
 }

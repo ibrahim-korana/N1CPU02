@@ -138,14 +138,18 @@ static void send_intro(void *arg)
     uint8_t rr = 0;
     while (target)
       {
-        object = cJSON_CreateObject();
-        cJSON_AddStringToObject(object, "name", (char*)target->genel.name);
-        cJSON_AddNumberToObject(object, "id", target->genel.device_id);
-        uint8_t ll = 0;
-        if (target->genel.register_device_id>0) ll=100;
-        ll += target->prg_loc;
-        cJSON_AddNumberToObject(object, "loc", ll);
-        cJSON_AddItemToArray(array, object);
+        bool al=true;
+        if (al)
+        {
+            object = cJSON_CreateObject();
+            cJSON_AddStringToObject(object, "name", (char*)target->genel.name);
+            cJSON_AddNumberToObject(object, "id", target->genel.device_id);
+            uint8_t ll = 0;
+            if (target->genel.register_device_id>0) ll=100;
+            ll += target->prg_loc;
+            cJSON_AddNumberToObject(object, "loc", ll);
+            cJSON_AddItemToArray(array, object);
+        }
         target=target->next;
         if (rr++>DEV_NUM) break;
       }
@@ -161,6 +165,32 @@ static void send_intro(void *arg)
   } 
     //printf("After %u\n" ,esp_get_free_heap_size()); 
     vTaskDelete(NULL);
+}
+
+void send_names(void)
+{
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "com", "names_ack");
+    cJSON *array;
+    array = cJSON_AddArrayToObject(root, "nms");
+    cJSON *object;
+    Base_Function *target = get_function_head_handle();
+    while (target)
+      {
+        object = cJSON_CreateObject();
+        cJSON_AddNumberToObject(object, "id", target->genel.device_id);
+        cJSON_AddStringToObject(object, "nm", (char*)target->genel.uname);
+        
+        cJSON_AddItemToArray(array, object);
+        target=(Base_Function *)target->next;
+      }
+    char *dat = cJSON_PrintUnformatted(root); 
+   // printf("LOC %s\n",dat);
+     while(uart.is_busy()) vTaskDelay(50/portTICK_PERIOD_MS);
+    uart.Sender(dat,253); 
+    
+    cJSON_free(dat);
+    cJSON_Delete(root);    
 }
 
 //-----------------------------------------
@@ -247,6 +277,30 @@ bool event_action(cJSON *rcv)
       home_status_t stat={};
       json_to_status(rcv, &stat, aa->get_status());
       aa->set_status(stat);
+      
+      //alanya için eklendi
+      //-----------------------
+      if (strcmp(aa->genel.name,"cont")==0)
+        {
+          if (stat.stat==true)
+            {
+                Base_Function *tar=get_function_head_handle();
+                while(tar)
+                {
+                    if (strcmp(tar->genel.name,"lamp")==0)
+                       {
+                          //Lambayı kapat
+                          home_status_t ss={};
+                          ss = tar->get_status();
+                          ss.stat = false;
+                          tar->set_status(ss);
+                       }
+                    tar = tar->next;
+                }
+            }
+        }
+        
+        //-----------------
   }
   return true;
 }

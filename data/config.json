@@ -1,221 +1,147 @@
 {
     "devices":"Ice_ExBox",
+    "Project":"Kurtkoy Ana Kutu",
     "functions": [
         {
-            "name":"lamp",
-            "uname":"Lamba1",
+            "name":"cur",
+            "uname":"Perde",
             "id": 1,
-            "timer": 0,
-            "loc": 2,
+            "timer": 60,
             "hardware": {
                 "location" : "local",
                 "port": [
-                    {"pin": 1,"pcf":1, "name":"L1 Role", "type":"PORT_OUTPORT"},
-                    {"pin": 1,"pcf":1, "name":"L1 Swc", "type":"PORT_INPULS"}
+                    {"pin": 2,"pcf":1, "name":"UP", "type":"PORT_OUTPORT"},
+                    {"pin": 3,"pcf":1, "name":"DOWN", "type":"PORT_OUTPORT"},
+                    {"pin": 3,"pcf":1, "name":"UP", "type":"PORT_INPORT"},
+                    {"pin": 4,"pcf":1, "name":"DOWN", "type":"PORT_INPORT"},
+                    {"pin": 1,"name":"AN_03", "type":"PORT_VIRTUAL"}
+                ]
+            }
+        },
+        {
+            "name":"lamp",
+            "uname":"Lamba1",
+            "id": 2,
+            "timer": 0,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 4,"pcf":1, "name":"Aydinlatma_1", "type":"PORT_OUTPORT"},
+                    {"pin": 5,"pcf":1, "name":"Aydinlatma_1", "type":"PORT_INPORT"},
+                    {"pin": 1, "name":"AN_01", "type":"PORT_VIRTUAL"}
                 ]
             }
         },
         {
             "name":"lamp",
             "uname":"Lamba2",
-            "id": 2,
-            "timer": 0,
-            "loc": 2,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 2,"pcf":1, "name":"L2 Role", "type":"PORT_OUTPORT"},
-                    {"pin": 2,"pcf":1, "name":"L2 Swc", "type":"PORT_INPULS"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba3",
             "id": 3,
             "timer": 0,
-            "loc": 2,
+            "loc": 0,
             "hardware": {
                 "location" : "local",
                 "port": [
-                    {"pin": 3,"pcf":1, "name":"L3 Role", "type":"PORT_OUTPORT"},
-					{"pin": 3,"pcf":1, "name":"L3 Swc", "type":"PORT_INPULS"}
+                    {"pin": 5,"pcf":1, "name":"Aydinlatma_1", "type":"PORT_OUTPORT"},
+                    {"pin": 6,"pcf":1, "name":"Aydinlatma_1", "type":"PORT_INPORT"},
+                    {"pin": 1, "name":"AN_02", "type":"PORT_VIRTUAL"}
                 ]
             }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba4",
-            "id": 4,
-            "timer": 0,
-            "loc": 3,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 4,"pcf":1, "name":"L4 Role", "type":"PORT_OUTPORT"},
-					{"pin": 4,"pcf":1, "name":"L4 Swc", "type":"PORT_INPULS"}
-                ]
-            }
-        },
-
-        {
-            "name":"lamp",
-            "uname":"Lamba5",
-            "id": 5,
-            "timer": 0,
-            "loc": 3,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 5,"pcf":1, "name":"L5 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba6",
-            "id": 6,
-            "timer": 0,
-            "loc": 3,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 6,"pcf":1, "name":"L6 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba7",
-            "id": 7,
-            "timer": 0,
-            "loc": 4,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 5,"pcf":1, "name":"L7 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },	
-        {
-            "name":"lamp",
-            "uname":"Lamba8",
-            "id": 8,
-            "timer": 0,
-            "loc": 4,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 8,"pcf":1, "name":"L8 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba9",
-            "id": 9,
-            "timer": 0,
-            "loc": 4,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 9,"pcf":1, "name":"L5 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba10",
-            "id": 10,
-            "timer": 0,
-            "loc": 1,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 10,"pcf":1, "name":"L10 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba11",
-            "id": 11,
-            "timer": 0,
-            "loc": 2,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 11,"pcf":1, "name":"L11 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba12",
-            "id": 12,
-            "timer": 0,
-            "loc": 3,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 12,"pcf":1, "name":"L12 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba13",
-            "id": 13,
-            "timer": 0,
-            "loc": 4,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 13,"pcf":1, "name":"L13 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba14",
-            "id": 14,
-            "timer": 0,
-            "loc": 4,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 14,"pcf":1, "name":"L14 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"lamp",
-            "uname":"Lamba15",
-            "id": 15,
-            "timer": 0,
-            "loc": 4,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 15,"pcf":1, "name":"L15 Role", "type":"PORT_OUTPORT"}
-                ]
-            }
-        },		
+        },    
         {
             "name":"sec",
             "uname":"guvenlik",
-            "id": 13,
+            "id": 4,
             "loc": 0,
-            "timer": 10,
+            "timer": 5,
             "hardware": {
                 "location" : "local",
-                "port": [                    
-                    {"pin": 27, "name":"Su","type":"PORT_WATER", "reverse":1},
-                    {"pin": 6, "pcf":1, "name":"Kapi","type":"PORT_INPORT"}, 
-                    {"pin": 5, "pcf":1, "name":"Duman","type":"PORT_INPORT"}                  
+                "port": [               
+                    {"pin": 27, "name":"Su","type":"PORT_WATER", "reverse":1},     
+                    {"pin": 1, "pcf":1, "name":"Duman","type":"PORT_INPORT"},                  
+                    {"pin": 2, "pcf":1, "name":"Kapi","type":"PORT_INPORT"},
+                    {"pin": 11, "pcf":1, "name":"Alarm","type":"PORT_OUTPORT"}
                 ]              
             }
+        },
+        {
+            "name":"cont",
+            "uname":"kontaktor",
+            "id": 5,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 1, "pcf":1, "name":"Kontaktor","type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+        {
+            "name":"onoff",
+            "uname":"kombi",
+            "id": 6,
+            "timer": 0,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 8,"pcf":1, "name":"ON", "type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+        {
+            "name":"air",
+            "uname":"Klima1",
+            "id": 7,
+            "timer": 40, 
+            "loc": 0,
+            "global":30, 
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 9,"pcf":1, "name":"KOLLEKTOR2", "type":"PORT_OUTPORT"},
+                    {"pin": 1, "name":"TEMP01", "type":"PORT_VIRTUAL"}
+                ]
+            }
+        },
+        {
+            "name":"water",
+            "uname":"SU",
+            "id": 8,
+            "timer": 0,
+            "loc": 0,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 6, "pcf":1, "name":"SWITCH","type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+        {
+            "name":"elev",
+            "uname":"asansor",
+            "id": 9,
+            "loc": 0,
+            "timer": 3,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 12, "pcf":1, "name":"role","type":"PORT_OUTPORT"}
+                ]
+            }
+        },
+        {
+            "name":"gara",
+            "uname":"Garaj 1",
+            "id": 10,
+            "loc": 0,
+            "timer": 5,
+            "hardware": {
+                "location" : "local",
+                "port": [
+                    {"pin": 10, "pcf":1, "name":"role","type":"PORT_OUTPORT"}
+                ]
+            }
         }
-
     ]
 }

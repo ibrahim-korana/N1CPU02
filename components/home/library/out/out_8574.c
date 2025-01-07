@@ -17,6 +17,7 @@ esp_err_t out_8574_init(const out_8574_config_t *config)
 {
     GPIO_OUT_CHECK(NULL != config, "Pointer of config is invalid", ESP_ERR_INVALID_ARG);
     //out_8574_config=config;
+    //config->device->reg |= (1 << config->pin_num);
     return ESP_OK;
 }
 
@@ -28,6 +29,9 @@ esp_err_t out_8574_deinit(int gpio_num)
 uint8_t out_read(i2c_dev_t *dev, uint8_t num, out_8574_config_t *cfg)
 {
     uint8_t aa = pcf8574_pin_read(dev,num);
+
+  //  printf("Out Read %02X %02X %02X\n",dev->addr,dev->reg,aa); 
+
     if (cfg->reverse==1) aa=!aa;
   return !aa;
 }
@@ -35,6 +39,8 @@ void out_write(i2c_dev_t *dev, uint8_t num, uint8_t level,out_8574_config_t *cfg
 {
     uint8_t aa = level;
     if (cfg->reverse==1) aa=!aa;
+  //  aa = aa | dev->reg;
+    //printf("Write Out %02X %02X\n",level,aa);
     pcf8574_pin_write(dev,num,!aa);
 }
 

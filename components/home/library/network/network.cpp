@@ -41,7 +41,7 @@ bool Network::ap_init(void)
     */
     wifi_ap_config_t aa = {};
     strcpy((char*)aa.ssid, "ICE_Device");
-    strcpy((char*)aa.password, "IcedeviCE");
+    strcpy((char*)aa.password, "ice12345");
     aa.ssid_len = strlen("ICE_Device");
 
     aa.channel = DEFAULT_AP_CHANNEL;

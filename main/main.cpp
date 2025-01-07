@@ -12,9 +12,16 @@ static const char *TAG = "ANAKUTU_CPU2";
 #define GLOBAL_FILE "/config/global.bin"
 #define NETWORK_FILE "/config/network.bin"
 
+
+
 #include "geneltanim.h" 
 
 #include "core.h"
+
+ESP_EVENT_DEFINE_BASE(SECURITY_EVENTS);
+
+
+
 #include "storage.h"
 #include "iptool.h"
 #include "lib/tool/tool.h"
@@ -35,6 +42,9 @@ static const char *TAG = "ANAKUTU_CPU2";
 
 #include "esp_http_client.h"
 #include "esp_https_ota.h"
+#include "lib/udp_server.h"
+
+ESP_EVENT_DEFINE_BASE(UDP_EVENT);
 
 
 #define LED (gpio_num_t)0 
@@ -42,6 +52,7 @@ static const char *TAG = "ANAKUTU_CPU2";
 #define I2CINT GPIO_NUM_33
 #define BUTTON1 34
 #define WATER 27
+#define HARD_RESET (gpio_num_t)14
 
 #define HASH_LEN 32
 
@@ -87,6 +98,7 @@ TcpServer tcpserver = TcpServer();
 UdpBroadcast broadcast = UdpBroadcast();
 QueueHandle_t ter_que = NULL;
 
+Udp_Server udp_server = Udp_Server();
 
 //----------- Pre-Define Function -----------
 void config(void);
@@ -339,6 +351,8 @@ extern "C" void app_main()
     #endif   
 
     printf("BASLADI\n");
+   // iot_button_list();
+   // iot_out_list();
 
     while(true) 
     {

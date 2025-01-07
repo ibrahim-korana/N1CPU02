@@ -5,7 +5,7 @@
 #include "i2cdev.h"
 #include "ice_pcf8574.h"
 
-#define I2C_FREQ_HZ 100000
+#define I2C_FREQ_HZ 50000
 
 #define CHECK(x) do { esp_err_t __; if ((__ = x) != ESP_OK) return __; } while (0)
 #define CHECK_ARG(VAL) do { if (!(VAL)) return ESP_ERR_INVALID_ARG; } while (0)
@@ -35,6 +35,18 @@ static esp_err_t write_port(i2c_dev_t *dev, uint8_t val)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void pcf8574_set_direction(i2c_dev_t *dev,uint8_t pin, uint8_t dir)
+{
+   if (dir == 0)
+    {
+        dev->reg &= ~(1 << pin);  //0 out
+    } else {
+        dev->reg |= (1 << pin);   //1 input
+    }
+	//printf("SET DIR %02x %02X\n",address, direction);
+}	
+
+
 esp_err_t pcf8574_init_desc(i2c_dev_t *dev, uint8_t addr, i2c_port_t port, gpio_num_t sda_gpio, gpio_num_t scl_gpio)
 {
     CHECK_ARG(dev);
@@ -44,6 +56,7 @@ esp_err_t pcf8574_init_desc(i2c_dev_t *dev, uint8_t addr, i2c_port_t port, gpio_
     dev->addr = addr;
     dev->cfg.sda_io_num = sda_gpio;
     dev->cfg.scl_io_num = scl_gpio;
+    dev->reg = 0x00;
 //#if HELPER_TARGET_IS_ESP32
     dev->cfg.master.clk_speed = I2C_FREQ_HZ;
 //#endif
@@ -65,12 +78,14 @@ esp_err_t pcf8574_port_read(i2c_dev_t *dev, uint8_t *val)
 
 esp_err_t pcf8574_port_write(i2c_dev_t *dev, uint8_t val)
 {
+    uint8_t aa = val | dev->reg;
+   // printf("%02X Reg=%02X WR=%02X\n",dev->addr,dev->reg,aa);
     return write_port(dev, val);
 }
 
 esp_err_t pcf8574_pin_write(i2c_dev_t *dev, uint8_t pin, uint8_t val)
 {
-    uint8_t dt=0;
+    uint8_t dt=0, dt1=0;
     pcf8574_port_read(dev,&dt);
     if (val == 0)
     {
@@ -78,7 +93,11 @@ esp_err_t pcf8574_pin_write(i2c_dev_t *dev, uint8_t pin, uint8_t val)
     } else {
         dt |= (1 << pin);
     }
-    return write_port(dev, dt);
+
+    dt1 = dt | dev->reg; 
+   // printf("Pin write %02X %02X %02X\n",val,  dt, dt1);
+
+    return write_port(dev, dt1);
 }
 
 uint8_t pcf8574_pin_read(i2c_dev_t *dev, uint8_t pin)

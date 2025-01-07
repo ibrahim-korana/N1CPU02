@@ -32,7 +32,7 @@ bool Storage::function_file_format(void)
     FILE *fd = fopen(FUNCTION_FILE, "r+");
     if (fd == NULL) {ESP_LOGE(TAG,"%s not open",FUNCTION_FILE); return false;}
     fseek(fd, 0, SEEK_SET);  
-    char *ff = (char *)malloc(sizeof(function_reg_t)*MAX_DEVICE);
+    char *ff = (char *)calloc(1,sizeof(function_reg_t)*MAX_DEVICE);
     memset(ff, 0,sizeof(function_reg_t)*MAX_DEVICE);
     fwrite(ff,1,sizeof(function_reg_t)*MAX_DEVICE,fd);
     free(ff);
@@ -46,12 +46,13 @@ bool Storage::status_file_format(void)
     FILE *fd = fopen(STATUS_FILE, "r+");
     if (fd == NULL) {ESP_LOGE(TAG,"%s not open",STATUS_FILE); return false;}
     fseek(fd, 0, SEEK_SET);  
-    char *ff = (char *)malloc(sizeof(home_status_t)*MAX_FUNCTION);
+    char *ff = (char *)calloc(1,sizeof(home_status_t)*MAX_FUNCTION);
     memset(ff, 0,sizeof(home_status_t)*MAX_FUNCTION);
     fwrite(ff,1,sizeof(home_status_t)*MAX_FUNCTION,fd);
     free(ff);
     fflush(fd);
     fclose(fd);
+    ESP_LOGE(TAG, "Status File FORMAT");
     return true; 
 
 }
@@ -103,11 +104,12 @@ bool Storage::init(void)
         ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
     }
 
-    if (!file_control(STATUS_FILE)) return false;
-   
+    if (!file_control(STATUS_FILE)) return false;   
     if (!file_control(FUNCTION_FILE)) return false;
     if (file_size(FUNCTION_FILE)==0) function_file_format();
     if (file_size(STATUS_FILE)==0) status_file_format();
+
+    //status_file_format();
 
     return err;
 }
@@ -161,6 +163,7 @@ bool Storage::file_create(const char *name, uint16_t size)
 bool Storage::file_control(const char *name)
 {
     if (!file_search(name)) {
+        ESP_LOGE(TAG, "%s CREATE",name);
         FILE *fd = fopen(name, "w");
         if (fd==NULL) {ESP_LOGE(TAG,"%s not created",name);return false;}
         fclose(fd);
@@ -177,6 +180,7 @@ int Storage::file_size(const char *name)
     int file_size = ftell(fd);
     fseek(fd, 0, SEEK_SET);
     fclose(fd);
+    //ESP_LOGE(TAG, "%s SIZE %d",name,file_size);
     return file_size;
 }
 

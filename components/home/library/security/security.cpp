@@ -6,6 +6,8 @@ static const char *SEC_TAG = "SECURITY";
 //Bu fonksiyon inporttan tetiklenir
 void Security::func_callback(void *arg, port_action_t action)
 { 
+    ESP_LOGW(SEC_TAG,"Security Action");
+
     if (action.action_type==ACTION_INPUT) 
      {
         button_handle_t *btn = (button_handle_t *) action.port;
@@ -13,6 +15,8 @@ void Security::func_callback(void *arg, port_action_t action)
         button_event_t evt = iot_button_get_event(btn);
         Base_Function *fun = (Base_Function *) arg;
         home_status_t stat = fun->get_status();
+
+       
         /*
             sensor mesajları alarm açıksa değerlendirilsin
         */
@@ -21,7 +25,7 @@ void Security::func_callback(void *arg, port_action_t action)
         if (prt->type==PORT_FIRE || prt->type==PORT_GAS || prt->type==PORT_EMERGENCY || prt->type==PORT_WATER) acc=true;
         //tek şart kullanıcının portu iptal etmemiş olması  
         bool strt = (acc) && (prt->get_user_active());
-        printf("%s STRT DURUMU=%d %d&%d\n",prt->name,stat.status,(acc), prt->get_user_active());
+        ESP_LOGW(SEC_TAG,"%s STRT DURUMU=%d %d&%d",prt->name,stat.status,(acc), prt->get_user_active());
        // 
         if (strt)
         {
@@ -37,8 +41,19 @@ void Security::func_callback(void *arg, port_action_t action)
                 change = true;
             }
             if (change) {
+                ESP_LOGW(SEC_TAG,"Status degişti Callback çagrılıyor. Event oluştu");
+                               
                 ((Security *)fun)->local_set_status(stat,true);
                 if (fun->function_callback!=NULL) fun->function_callback(fun, fun->get_status());
+
+                vTaskDelay(100/portTICK_PERIOD_MS);
+
+                if (prt->type == PORT_WATER) ESP_ERROR_CHECK(esp_event_post(SECURITY_EVENTS, WATER_EVENT, NULL, 0, portMAX_DELAY));
+                if (prt->type == PORT_GAS) ESP_ERROR_CHECK(esp_event_post(SECURITY_EVENTS, GAS_EVENT, NULL, 0, portMAX_DELAY));
+                if (prt->type == PORT_FIRE) ESP_ERROR_CHECK(esp_event_post(SECURITY_EVENTS, FIRE_EVENT, NULL, 0, portMAX_DELAY));
+                if (prt->type == PORT_EMERGENCY) ESP_ERROR_CHECK(esp_event_post(SECURITY_EVENTS, EMERGENCY_EVENT, NULL, 0, portMAX_DELAY));
+
+
             } 
         }
      }
@@ -135,7 +150,7 @@ void Security::alarm_close(void)
         if (target->type==PORT_WATER) target->set_active(true); 
         target->set_alarm(false);
 
-        //printf("Port %15s ACTIVE=%d USER=%d\n",target->name,target->get_active(),target->get_user_active());
+        ESP_LOGI(SEC_TAG,"Port %15s ACTIVE=%d USER=%d\n",target->name,target->get_active(),target->get_user_active());
         target = target->next;
     }  
     write_status();

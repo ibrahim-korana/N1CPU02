@@ -251,6 +251,15 @@ port_type_t port_type_convert(char * aa);
 void port_type_string(port_type_t tp,char *aa);
 void transmisyon_string(transmisyon_t tt,char *aa);
 
+ESP_EVENT_DECLARE_BASE(SECURITY_EVENTS);
+
+typedef enum {
+    WATER_EVENT = 0,
+    GAS_EVENT,
+    FIRE_EVENT,
+    EMERGENCY_EVENT,
+} security_event_t;
+
 
 /*
          CALLBACK

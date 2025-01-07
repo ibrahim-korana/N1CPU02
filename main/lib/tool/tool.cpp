@@ -58,7 +58,7 @@ esp_err_t pcf_init(i2c_dev_t *pp, uint8_t addr, uint8_t retry, bool log, gpio_nu
             err = pcf8574_init_desc(pp, addr, (i2c_port_t)0, (gpio_num_t)21, (gpio_num_t)22);
             if (i++>retry) return ESP_FAIL;
             err = i2c_dev_probe(pp,I2C_DEV_READ);
-            if (log) ESP_LOGE(TOOL_TAG,"Addr 0x%02X Count %2i Error : %X %s\n",addr,i, err, esp_err_to_name(err));
+            if (log) ESP_LOGE(TOOL_TAG,"Addr 0x%02X Count %2i Error : %X %s",addr,i, err, esp_err_to_name(err));
          }
   gpio_set_level((gpio_num_t)LLD, 0);                      
   return err;       
