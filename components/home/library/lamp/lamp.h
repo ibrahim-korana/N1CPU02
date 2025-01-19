@@ -15,19 +15,21 @@ class Lamp : public Base_Function {
       Lamp(int id, function_callback_t cb, Storage dsk) {
         genel.device_id = id;
         strcpy(genel.name,"lamp");
+        genel.active = true;
         function_callback = cb;
         statustype = 1;
         disk = dsk;
         disk.read_status(&status,genel.device_id);
         local_port_callback = &func_callback;
         if (!status.first) {             
-              memset(&status,0,sizeof(status));
+              memset(&status,0,sizeof(home_status_t));
               status.stat     = false;
               status.active   = true;
               status.first    = true;
               status.status   = 0;
               write_status();
-        }      
+        }  
+        disk.read_status(&status,genel.device_id); 
       };
       ~Lamp() {};
 

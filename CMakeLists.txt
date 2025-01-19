@@ -2,7 +2,7 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-set(PROJECT_VER "1.1.1.10")
+set(PROJECT_VER "1.1.1.14")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(N1CPU02)
 
@@ -35,5 +35,13 @@ spiffs_create_partition_image(storage data FLASH_IN_PROJECT)
 # 1.1.1.9 ---> 06.01.2024
     # Curtain, Air, Lamba köklü degişimi. Yeni android ve akille entegrasyon      
 # 1.1.1.10 ---> 07.01.2024
-    # Garaj kapısı gara eklendi           
+    # Garaj kapısı gara eklendi    
+# 1.1.1.11 ---> 12.01.2024
+    # Log sistemi eklendi   
+# 1.1.1.12 ---> 14.01.2024
+    # Log sistemi düzenlendi     
+# 1.1.1.13 ---> 14.01.2024
+    # TFTP OTA Server eklendi   
+# 1.1.1.14 ---> 15.01.2024
+    # Log sistemi web e baglandı Default kayıtsız                  
 

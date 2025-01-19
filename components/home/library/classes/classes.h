@@ -239,6 +239,7 @@ class Base_Function
       {
           memcpy(&status,&stat,sizeof(home_status_t));
           //status=stat;
+          status.first = true;
           if (write) write_status(); 
       }
 

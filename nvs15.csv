@@ -1,0 +1,4 @@
+key,type,encoding,value
+storage,namespace,,
+hardware,data,u8,15
+atmega,data,u8,0

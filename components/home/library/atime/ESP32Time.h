@@ -47,6 +47,7 @@ class ESP32Time {
 		void getTime(char *ret);
 		void getDateTime(char *ret, bool mode = false);
 		void getTimeDate(char *ret, bool mode = false);
+		void getTimeDateTR(char *ret);
 		void getDate(char *ret, bool mode = false);
 		void getAmPm( char *ret, bool lowercase = false);
 		

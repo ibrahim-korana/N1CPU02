@@ -80,7 +80,7 @@ void all_event(void* handler_args, esp_event_base_t base, int32_t id, void* even
             if (id==IP_EVENT_AP_STAIPASSIGNED)
              {
                 //Station ip aldı
-                printf("CLIENTA IP ATANDI\n");
+                ESP_LOGI(TAG,"CLIENTA IP ATANDI");
              }  
           }
           
@@ -104,7 +104,7 @@ void all_event(void* handler_args, esp_event_base_t base, int32_t id, void* even
             } 
 
             if (id ==IP_EVENT_AP_STAIPASSIGNED) {
-                printf("IP ATANDI\n");
+                ESP_LOGI(TAG,"IP ATANDI");
             }
 
             if (id==WIFI_EVENT_STA_DISCONNECTED)

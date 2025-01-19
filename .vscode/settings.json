@@ -12,7 +12,7 @@
         "interface/ftdi/esp32_devkitj_v1.cfg",
         "target/esp32.cfg"
     ],
-    "idf.portWin": "COM5",
+    "idf.portWin": "COM4",
     "idf.pythonBinPathWin": "d:\\.espressif\\python_env\\idf5.2_py3.11_env\\Scripts\\python.exe",
     "idf.toolsPathWin": "d:\\.espressif",
     "files.associations": {
@@ -24,7 +24,8 @@
         "home_8574.h": "c",
         "thread": "cpp",
         "cstdlib": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "task.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

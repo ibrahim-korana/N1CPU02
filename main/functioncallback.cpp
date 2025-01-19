@@ -54,7 +54,7 @@ static void function_Callback(void *arg, home_status_t stat)
 
   while(uart.is_busy()) vTaskDelay(50/portTICK_PERIOD_MS);
   return_type_t pp = uart.Sender(dat,253);
-  if (pp!=RET_OK) printf("PAKET GÖNDERİLEMEDİ. Error:%d\n",pp);
+  if (pp!=RET_OK) ESP_LOGE("FUNC_CB","PAKET GÖNDERİLEMEDİ. Error:%d\n",pp);
   vTaskDelay(50/portTICK_PERIOD_MS); 
 
 
@@ -79,7 +79,7 @@ static void function_Callback(void *arg, home_status_t stat)
 
                     while(uart.is_busy()) vTaskDelay(50/portTICK_PERIOD_MS);
                     return_type_t pp = uart.Sender(dat1,253);
-                    if (pp!=RET_OK) printf("PAKET GÖNDERİLEMEDİ. Error:%d\n",pp);
+                    if (pp!=RET_OK) ESP_LOGE("FUNC_CB","PAKET GÖNDERİLEMEDİ. Error:%d\n",pp);
                     vTaskDelay(50/portTICK_PERIOD_MS);
 
                     udp_server.send_broadcast((uint8_t *)dat1,strlen(dat1)); 

@@ -12,17 +12,21 @@ void Air::func_callback(void *arg, port_action_t action)
 void Air::temp_action(bool send)
 {
     bool change = false, role = false;
+    status_to_durum(); 
+
     #ifdef ADEBUG
-        printf("Mod %s\n",(durum.stat.st.auto_manuel==1)?"Manuel":"Auto");
-        printf("Mod %s\n",(durum.stat.st.isitma_sogutma==1)?"Isıtma" : "Sogutma"); ;
-        printf("USER ROLE %d\n",durum.stat.st.motor_aktif_pasif);
-        printf("TEMP %.01f SET %.01f\n",durum.temp, durum.set_temp);
-        printf("SS %d\n",durum.stat.st.start_stop);
-    #endif    
+        ESP_LOGI(AIR_TAG,"    Type     %s",(run_stat.mod==0)?"Isıtma" : "Sogutma"); ;
+        ESP_LOGI(AIR_TAG,"    Min/Max  %d/%d",run_stat.min_temp,run_stat.max_temp); 
+        ESP_LOGI(AIR_TAG,"    Temp/Set %.0f/%.0f",durum.temp,durum.set_temp);
+        ESP_LOGI(AIR_TAG,"    Auto     %s",(durum.stat.st.auto_manuel==1)?"Manuel":"Auto");
+        ESP_LOGI(AIR_TAG,"    On/Off   %s",(durum.stat.st.start_stop==1)?"Run":"Stop");
+        if (durum.stat.st.auto_manuel==1)
+           ESP_LOGI(AIR_TAG,"    Anahtar  %s",(durum.stat.st.motor_aktif_pasif==1)?"Aktif":"Pasif");        
+    #endif   
 
     if (durum.stat.st.auto_manuel==0) //Auto Mod
     {
-        if (durum.stat.st.isitma_sogutma == 1)
+        if (run_stat.mod == 0)
         {
             //Isıtma Modu
             if (durum.temp>=durum.set_temp) {
@@ -33,7 +37,7 @@ void Air::temp_action(bool send)
                                             change = true;
                                             }
         }
-        if (durum.stat.st.isitma_sogutma==0)
+        if (run_stat.mod==1)
         {
             //Sogutma Modu
             if (durum.temp>0)
@@ -51,7 +55,7 @@ void Air::temp_action(bool send)
     if (durum.stat.st.auto_manuel==1) //Manuel mod
     {
         role = durum.stat.st.motor_aktif_pasif;
-        if (durum.temp<min_temp || durum.temp>max_temp) role=false;
+        if (durum.temp<run_stat.min_temp || durum.temp>run_stat.max_temp) role=false;
         change = true;
     }
     if (durum.stat.st.start_stop==0)
@@ -69,15 +73,13 @@ void Air::temp_action(bool send)
     } 
 
     #ifdef ADEBUG
-     printf("AKTIF ROLE %d\n",durum.stat.st.role_durumu);
+     ESP_LOGI(AIR_TAG,"    Motor    %s",(durum.stat.st.role_durumu==1)?"Çalışıyor":"Durdu");
     #endif
 
     if (send) if (function_callback!=NULL) {
         durum_to_status();
         function_callback((void *)this, get_status());
     }
-
-
 }
 
 
@@ -148,13 +150,12 @@ void Air::remote_set_status(home_status_t stat, bool callback_call) {
 
 void Air::ConvertStatus(home_status_t stt, cJSON* obj)
 {
-    
+   
     if (stt.stat) cJSON_AddTrueToObject(obj, "stat"); else cJSON_AddFalseToObject(obj, "stat");
     if (stt.active) cJSON_AddTrueToObject(obj, "act"); else cJSON_AddFalseToObject(obj, "act");
-    durum_to_status();
-    
+    durum_to_status();   
     cJSON_AddNumberToObject(obj, "coun",status.counter);
-    uint16_t jj = (max_temp<<8) | (min_temp);
+    uint16_t jj = (run_stat.max_temp<<8) | (run_stat.min_temp);
     cJSON_AddNumberToObject(obj, "color",jj);
     cJSON_AddNumberToObject(obj, "status", stt.status);
     char *mm;;
@@ -220,15 +221,23 @@ void Air::init(void)
 {
     if (!genel.virtual_device)
     {
-        if ((global&0x01)!=0x01) {ESP_LOGW(AIR_TAG,"TERMOSTAT ISITMA MODUNDA");isitma_sogutma = 1;}
-        if ((global&0x01)==0x01) {ESP_LOGW(AIR_TAG,"TERMOSTAT SOGUTMA MODUNDA");isitma_sogutma = 0;}
-        min_temp = (global>>1);
-        if (min_temp==0) min_temp=18;
-        max_temp=timer;
-        if (max_temp<=min_temp) max_temp = 30;
-        ESP_LOGW(AIR_TAG,"Temp MIN=%d MAX=%d",min_temp,max_temp);
-        durum.stat.st.isitma_sogutma = isitma_sogutma;
-        status.counter  = durum.stat.int_st;
+        run_stat.min_temp = (global & 0b00011111);
+        if (run_stat.min_temp==0) run_stat.min_temp=18;
+        run_stat.mod = ((global & 0b10000000) == 0b10000000);
+        
+        run_stat.max_temp=(timer & 0b01111111);
+        if (run_stat.max_temp<=run_stat.min_temp) run_stat.max_temp = 30;
+        run_stat.user = ((timer & 0b10000000) == 0b10000000);
+
+        uint16_t jj = (run_stat.max_temp<<8) | (run_stat.min_temp);
+        status.color = jj;
+
+        ESP_LOGW(AIR_TAG,"TERMOSTAT BILGILERI");
+        ESP_LOGW(AIR_TAG,"-------------------");
+        ESP_LOGW(AIR_TAG,"     Mod    : %s",(run_stat.mod==1)?"SOGUTMA":"ISITMA"); //1 Sogutma
+        ESP_LOGW(AIR_TAG,"     Min/Max: %d/%d",run_stat.min_temp,run_stat.max_temp);   
+        ESP_LOGW(AIR_TAG,"     User   : %s",(run_stat.user==1)?"SABİT":"Değiştirebilir");   
+
         status_to_durum(); 
         temp_action(true);
     }
@@ -236,7 +245,15 @@ void Air::init(void)
 
 void Air::status_to_durum(void)
 {
-    durum.stat.int_st = status.counter;
+    if (run_stat.user==0)
+    {
+        durum.stat.st.isitma_sogutma = run_stat.mod;
+        durum.stat.int_st = status.counter;
+    } else {
+        durum.stat.st.auto_manuel = 0;
+        durum.stat.st.isitma_sogutma = run_stat.mod;
+        durum.stat.st.start_stop = 1;
+    }
     durum.temp = status.temp;
     durum.set_temp = status.set_temp;
 }
@@ -273,12 +290,15 @@ void Air::durum_to_status(void)
             }
       }
 
-      global degerinin ilk biti ısıtma/sogutma olarak çalışacagını belirler. 0 ise ısıtma,
-      1 ise sogutma algoritmaları çalışır.
-      global degerinin sonraki 7 biti minimum ısıtma veya sogutma degeridir. 0 verilirse 18 olur.
+      Global degerinin ilk 5 biti MINIMUM ısıtma degerini belitler.
+                           8. bit 0 ise ISITMA sisteminin 1 ise SOGUTMA sisteminin,
+                           
+      minimum ısıtma veya sogutma degeri 0 verilirse 18 olur.
 
-      timer maximum ısıtma degerini tanımlar. 0 veya minimum degerden düşük verilirse 30 olarak alınır. 
-      Sistem minimum/maximum degerler dışında çalışmaz.
+      timerın ilk 7 biti maximum ısıtma degerini tanımlar. 0 veya minimum degerden düşük verilirse 30 olarak alınır. 
+      timer son biti 1 ise sistemlerin user tarafından degiştirilememesini sağlar.
+     
+      ölçülen ısı minimum/maximum degerler dışına çıkarsa sistem durdurulur.
       
       Objeye Virtual bir sensor tanımlanmak zorundadır. Bu sensor mevcut ısı, set ve manuel bilgilerini 
       gönderecektir. 

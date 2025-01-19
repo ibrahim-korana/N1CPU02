@@ -28,7 +28,7 @@ void Gonder(void *arg)
 
     while(uart.is_busy()) vTaskDelay(50/portTICK_PERIOD_MS);
     return_type_t pp = uart.Sender(data,253);
-    if (pp!=RET_OK) printf("PAKET GÖNDERİLEMEDİ. Error:%d\n",pp);
+    if (pp!=RET_OK) ESP_LOGE("COAP_CB","PAKET GÖNDERİLEMEDİ. Error:%d\n",pp);
     vTaskDelay(50/portTICK_PERIOD_MS);
     udp_server.send_broadcast((uint8_t *)data,strlen(data)); 
     free(data);
@@ -271,6 +271,7 @@ void coap_callback(char *data, uint8_t sender, transmisyon_t transmisyon, void *
               cJSON_AddNumberToObject(root1,"temp",bbb->get_status().temp);
               cJSON_AddNumberToObject(root1,"stemp",bbb->get_status().set_temp);
               cJSON_AddNumberToObject(root1,"coun",bbb->get_status().counter);
+              cJSON_AddNumberToObject(root1,"color",bbb->get_status().color);
 
               char *dat1 = cJSON_PrintUnformatted(root1);
               xTaskCreate(Gonder,"gondertask",2048,dat1,5,NULL);

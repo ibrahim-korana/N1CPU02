@@ -31,6 +31,8 @@ class Storage {
       
       void file_format(void);
 
+      void write_log(const char*name, char* text);
+
       static const char *rangematch(const char *pattern, char test, int flags);
       static int fnmatch(const char *pattern, const char *string, int flags);
       static void list(const char *path, const char *match);

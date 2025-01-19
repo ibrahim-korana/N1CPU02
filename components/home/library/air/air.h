@@ -24,6 +24,15 @@ typedef struct {
 } air_status_t;
 
 typedef struct {
+  uint8_t automod;
+  uint8_t onoff;
+  uint8_t user;  
+  uint8_t max_temp;
+  uint8_t min_temp;
+  uint8_t mod;
+} run_status_t;
+
+typedef struct {
    air_status_t stat;
    float temp;
    float set_temp;     
@@ -48,15 +57,11 @@ class Air : public Base_Function {
               status.temp     = 26;
               status.active   = true;
               status.first    = true;
-              status.status   = 0;
-                durum.stat.st.isitma_sogutma = !((global & 0x01)==0x01); //1 sogutma 
-                durum.stat.st.auto_manuel = 0; //Auto
-                durum.stat.st.gece_gunduz = 1; //Gunduz;
-                durum.stat.st.motor_aktif_pasif = 0; //pasif;
-                durum.stat.st.start_stop = 1; //Start
-                durum.stat.st.role_durumu = 0; //pasif
-                durum.stat.st.bos = 0;
-                status.counter  = durum.stat.int_st;
+              status.status   = 0;                
+              status.counter  = 0;
+              durum.stat.st.auto_manuel = 0;
+              durum.stat.st.start_stop = 1;
+              durum_to_status();
               //printf("BASLANGIC %02X SS %d\n",status.counter, durum.stat.st.start_stop);  
               write_status();
         }    
@@ -87,11 +92,8 @@ class Air : public Base_Function {
 
     protected:  
       air_t durum = {};
-      uint8_t min_temp = 18;
-      uint8_t max_temp = 30;
       uint8_t isitma_sogutma = 0; //1 sogutma 0 ısıtma
-
-      
+      run_status_t run_stat = {};
 
       static void func_callback(void *arg, port_action_t action);  
       void temp_action(bool send=true);    

@@ -43,8 +43,8 @@ void uart_callback(char *data)
        
        //
        char *tt = (char *)malloc(32);
-       rtc.getTimeDate(tt);
-       printf("DATE/TIME %s\n",tt);
+       rtc.getTimeDateTR(tt);
+       ESP_LOGW("UART_CB","DATE/TIME %s",tt);
        free(tt);    
     }
   

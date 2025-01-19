@@ -77,11 +77,18 @@ void Lamp::set_status(home_status_t stat)
         while (target) {
             if (target->type == PORT_OUTPORT) 
                 {
-                    status.stat = target->set_status(status.stat);
+                    //status.stat = target->set_status(status.stat);
+                    target->set_status(status.stat);
                 }
             target = target->next;
         }
+        //printf("Lamba %d WRITE Active %d Status %d\n",genel.device_id,genel.active, status.stat);
         write_status();
+/*         memset(&status, 0,sizeof(home_status_t));
+        disk.read_status(&status,genel.device_id);
+        
+        printf("Lamba %d AFTER WRITE Active %d Status %d\n",genel.device_id,genel.active, status.stat); */
+
         if (function_callback!=NULL) function_callback((void *)this, get_status());
     } else {
         if (command_callback!=NULL) command_callback((void *)this, stat);
@@ -260,8 +267,7 @@ void Lamp::init(void)
         disk.read_status(&status,genel.device_id);
         status.active = 1;
         Base_Port *target = port_head_handle;
-        
-       
+
         while (target) {
             if (target->type==PORT_OUTPORT)
                 {

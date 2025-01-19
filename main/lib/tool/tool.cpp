@@ -155,7 +155,7 @@ void inout_test(i2c_dev_t **pcf)
     }
 
     ESP_LOGE(TOOL_TAG,"GIRISLERI GND'ye çekerek test ediniz. Cikis icin RESET\n");
-    uint8_t val0=0, val1 = 0, val2=0, val3=0, val00 = 0xff, val11=0xff, val22 = 0xff, val33=0xff;
+    uint8_t val0=0, val1 = 0, val2=0,  val00 = 0xff, val11=0xff, val22 = 0xff;
     bool rep = true;
     while (rep)
       {  
@@ -288,8 +288,8 @@ while (rep)
 
 void rs485_input_test(void)
 {
-bool rep = true;
-uint16_t counter = 0;
+//bool rep = true;
+//uint16_t counter = 0;
 
 RS485_config_t rs485_cfg={};
 rs485_cfg.uart_num = 1;

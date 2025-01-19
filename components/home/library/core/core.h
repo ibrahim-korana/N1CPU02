@@ -18,7 +18,7 @@
 
 
 #define MAX_DEVICE 50
-#define MAX_FUNCTION 200
+#define MAX_FUNCTION 100
 
 typedef enum {
     HOME_WIFI_DEFAULT = 0,
@@ -50,9 +50,7 @@ typedef struct {
     uint32_t home_gateway;
     uint32_t home_broadcast;
     uint8_t mac[17];
-    uint8_t espnow;
-    uint8_t update_server[32];
-    uint8_t upgrade;
+    uint8_t logwrite;
 } home_network_config_t;
 
 typedef struct {
@@ -67,6 +65,7 @@ typedef struct {
     uint8_t reset_servisi;
     uint8_t http_start;
     uint8_t tcp_start;
+    uint8_t log_file;
 } home_global_config_t;
 
 struct remote_reg_t {
@@ -242,6 +241,12 @@ typedef enum {
     HOME_DOOR_OPEN = 0,
     HOME_DOOR_CLOSE
 } home_event_t;
+
+typedef struct {
+    uint8_t hardware_version;        /*!< Module version: length 8 bits */
+    uint8_t pcf_counter;           /*!< Device role: length 3 bits */
+    size_t reset_counter;  /*!< Custom secure version: length 16 bits */
+} special_desc_t;
 
 
 /*

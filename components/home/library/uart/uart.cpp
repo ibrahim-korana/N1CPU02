@@ -94,7 +94,7 @@ void UART::_sender_task(void *arg)
                   if (error==0)
                     {
                        if (xSemaphoreTake(self->ack_wait_sem,( TickType_t ) 500)==pdFALSE) error = 2; 
-                       if (error==2) printf("%d ACK ERROR\n", send_counter);
+                       if (error==2) ESP_LOGE(UART_TAG,"%d ACK ERROR", send_counter);
                        if (error==0) {sended=false;}                        
                     }
                   if(send_counter>3)
@@ -111,7 +111,7 @@ void UART::_sender_task(void *arg)
           }//For paket sayısı
          free(data->data);data->data=NULL;
          free(data);data=NULL;
-         if (self->send_paket_error>0) printf("paket error %d\n", self->send_paket_error);
+         if (self->send_paket_error>0) ESP_LOGE(UART_TAG,"paket error %d", self->send_paket_error);
          if (self->send_paket_sem!=NULL) 
            xSemaphoreGive(self->send_paket_sem);  
       } //queue

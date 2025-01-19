@@ -11,6 +11,7 @@ void global_default_config(void)
      GlobalConfig.http_start = 1;
      GlobalConfig.tcp_start = 1;
      GlobalConfig.reset_servisi = 0;
+     GlobalConfig.log_file = 1;
      disk.file_control(GLOBAL_FILE);
      disk.write_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig),0);
 }
@@ -25,9 +26,8 @@ void network_default_config(void)
      strcpy((char*)NetworkConfig.ip,"192.168.7.1");
      strcpy((char*)NetworkConfig.netmask,"255.255.255.0");
      strcpy((char*)NetworkConfig.gateway,"192.168.7.1");
-     NetworkConfig.espnow=0;
-     strcpy((char*)NetworkConfig.update_server,"icemqtt.com.tr");
-     NetworkConfig.upgrade = 0;
+    
+     NetworkConfig.logwrite = 0;
 
      //NetworkConfig.wifi_type = HOME_WIFI_STA;
      if (NetworkConfig.wifi_type==HOME_WIFI_STA)
@@ -92,7 +92,7 @@ void Device_Read(Storage *disk, Cihazlar *chz)
         for (JsonObject function : doc["devices"].as<JsonArray>()) {
           
           const char* a_mac = function["mac"];
-          const char* a_trn = function["transmisyon"];
+         // const char* a_trn = function["transmisyon"];
           int a_id = function["id"]; 
          
           device_register_t *yd = chz->cihaz_ekle(a_mac,TR_SERIAL); 
@@ -146,6 +146,70 @@ void config(void)
         vTaskDelay(100/portTICK_PERIOD_MS);
       }
       
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_err_t ret = nvs_flash_init();
+        if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+            ESP_ERROR_CHECK( nvs_flash_erase() );
+            ret = nvs_flash_init();
+        }
+    ESP_ERROR_CHECK( ret );  
+
+    nvs_handle_t nvs_handle;
+
+     esp_err_t err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
+      if (err != ESP_OK) {
+          ESP_LOGE(TAG,"Error (%s) opening NVS handle!", esp_err_to_name(err));
+      }
+
+    HARDWARE = 12; 
+    esp_err_t kk = nvs_get_u8(nvs_handle,"hardware",&HARDWARE);
+    if (kk==ESP_OK)
+     {
+        ESP_LOGW(TAG,"HARDWARE :%d Relay",HARDWARE);
+     } else {
+
+        ESP_LOGE(TAG,"NVS Okunamadı %s HARDWARE %d",esp_err_to_name(kk),HARDWARE); 
+     } 
+    ATMEGA = 0;
+    kk = nvs_get_u8(nvs_handle,"atmega",&ATMEGA);
+    if (kk==ESP_OK)
+     {
+        ESP_LOGW(TAG,"ATMEGA :%d",ATMEGA);
+     } else {
+
+        ESP_LOGE(TAG,"NVS Okunamadı %s ATMEGA %d",esp_err_to_name(kk), ATMEGA); 
+     } 
+    nvs_close(nvs_handle);  
+
+
+
+    //---------STORAGE ------------
+    ESP_ERROR_CHECK (!disk.init());
+    
+    disk.file_control(LOG1);
+    disk.file_control(LOG2);
+
+    //disk.format();
+    //disk.status_file_format();
+    disk.read_file(NETWORK_FILE,&NetworkConfig,sizeof(NetworkConfig), 0);
+    if (NetworkConfig.home_default==0 ) {
+        //Network ayarları diskte kayıtlı değil. Kaydet.
+         network_default_config();
+         disk.file_control(NETWORK_FILE);
+         disk.read_file(NETWORK_FILE,&NetworkConfig,sizeof(NetworkConfig),0);
+         if (NetworkConfig.home_default==0 ) ESP_LOGW(TAG, "Network Initilalize File ERROR !...");
+    }
+    
+    disk.read_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig), 0);
+    if (GlobalConfig.home_default==0 ) {
+        //Global ayarlar diskte kayıtlı değil. Kaydet.
+         global_default_config();
+         disk.read_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig),0);
+         if (GlobalConfig.home_default==0 ) printf( "\n\nGlobal Initilalize File ERROR !...\n\n");
+    }
+    disk.list("/config", "*.*");
+
+    esp_log_set_vprintf(&vprintf_into_spiffs);
 
     //------------------- Pcf init -----------------
 
@@ -155,14 +219,11 @@ void config(void)
       err2 = pcf_init(&pcf2, 0x22, 5, true,(gpio_num_t)LED) ;
       err1 = pcf_init(&pcf1, 0x21, 5, true,(gpio_num_t)LED) ;       
       err0 = pcf_init(&pcf0, 0x20, 5, true, (gpio_num_t)LED) ;
-      
-      
+            
       gpio_set_level((gpio_num_t)LED, 0);
-
-
-      if (err0!=ESP_OK) printf("0x20 ULASILAMIYOR\n"); else printf("0x20 SAGLAM\n");
-      if (err1!=ESP_OK) printf("0x21 ULASILAMIYOR\n"); else printf("0x21 SAGLAM\n");
-      if (err2!=ESP_OK) printf("0x22 ULASILAMIYOR\n"); else printf("0x22 SAGLAM\n");
+      if (err0!=ESP_OK) ESP_LOGE(TAG,"0x20 ULASILAMIYOR"); else ESP_LOGI(TAG,"0x20 SAGLAM");
+      if (err1!=ESP_OK) ESP_LOGE(TAG,"0x21 ULASILAMIYOR"); else ESP_LOGI(TAG,"0x21 SAGLAM");
+      if (err2!=ESP_OK) ESP_LOGE(TAG,"0x22 ULASILAMIYOR"); else ESP_LOGI(TAG,"0x22 SAGLAM");
 
    //   err0=ESP_OK;
 
@@ -177,9 +238,8 @@ void config(void)
       ESP_ERROR_CHECK (err1);
       ESP_ERROR_CHECK (err2);
       
-      //#undef PCF_4
-
-      #ifdef PCF_4
+      if (HARDWARE==15)
+      {
           esp_err_t err3 = ESP_OK;
           err3 = pcf_init(&pcf4, 0x23, 10, true,(gpio_num_t)LED);  
           if (err3!=ESP_OK)
@@ -191,10 +251,10 @@ void config(void)
           }
           ESP_ERROR_CHECK (err3) ;
           ESP_LOGW(TAG, "EXTENDED PCF AKTIF");
-      #else
+      } else {
           //&pcf4 = NULL; 
           ESP_LOGW(TAG, "EXTENDED PCF PASIF");    
-      #endif
+      }
       
       #ifdef ATMEGA_CONTROL
         ATMEGA=true;
@@ -220,18 +280,12 @@ void config(void)
     gpio_set_level((gpio_num_t)LED, 0);
     gpio_set_level((gpio_num_t)CPU1_RESET, 0);
 
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-    esp_err_t ret = nvs_flash_init();
-        if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-            ESP_ERROR_CHECK( nvs_flash_erase() );
-            ret = nvs_flash_init();
-        }
-     ESP_ERROR_CHECK( ret );
+    
 
      //if(esp_event_loop_create_default()!=ESP_OK) {ESP_LOGE(TAG,"esp_event_loop_create_default ERROR "); }
-	ESP_ERROR_CHECK(esp_event_handler_instance_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, all_event, NULL, NULL));
+	   ESP_ERROR_CHECK(esp_event_handler_instance_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, all_event, NULL, NULL));
 
-   get_sha256_of_partitions();
+    // get_sha256_of_partitions();
 
 
     //rs485_echo_test();
@@ -241,30 +295,8 @@ void config(void)
     //------------------- Pcf init ------------------
       
       gpio_set_level((gpio_num_t)LED, 1);
-      
-     
-    //---------STORAGE ------------
-    ESP_ERROR_CHECK (!disk.init());
-    //disk.format();
-    //disk.status_file_format();
 
-    disk.read_file(NETWORK_FILE,&NetworkConfig,sizeof(NetworkConfig), 0);
-    if (NetworkConfig.home_default==0 ) {
-        //Network ayarları diskte kayıtlı değil. Kaydet.
-         network_default_config();
-         disk.file_control(NETWORK_FILE);
-         disk.read_file(NETWORK_FILE,&NetworkConfig,sizeof(NetworkConfig),0);
-         if (NetworkConfig.home_default==0 ) ESP_LOGW(TAG, "Network Initilalize File ERROR !...");
-    }
     
-    disk.read_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig), 0);
-    if (GlobalConfig.home_default==0 ) {
-        //Global ayarlar diskte kayıtlı değil. Kaydet.
-         global_default_config();
-         disk.read_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig),0);
-         if (GlobalConfig.home_default==0 ) printf( "\n\nGlobal Initilalize File ERROR !...\n\n");
-    }
-    disk.list("/config", "*.*");
 
     if (GlobalConfig.start_value==1) {GlobalConfig.start_value=0; 
                                       disk.write_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig),0); 
@@ -314,22 +346,11 @@ void config(void)
 
     //----------  NETWORK ------------ 
     uint8_t mc[6] = {0};
-    if (NetworkConfig.espnow==0) 
-        ESP_ERROR_CHECK(esp_read_mac(mc, ESP_MAC_WIFI_SOFTAP));
-    else    
-        ESP_ERROR_CHECK(esp_read_mac(mc, ESP_MAC_WIFI_STA));
+    ESP_ERROR_CHECK(esp_read_mac(mc, ESP_MAC_WIFI_STA));
     
     sprintf((char*)NetworkConfig.mac, "%02X%02X%02X%02X%02X%02X", mc[0], mc[1], mc[2],mc[3], mc[4], mc[5]);
 
-    if (NetworkConfig.espnow==1)
-    {       
-        ESP_ERROR_CHECK(esp_netif_init());
-        EspNOW_set_cihazlar(&cihazlar);        
-        EspNOW_set_callback(&rs485_callback);
-        EspNOW_set_broadcast_callback(&broadcast_callback);
-        EspNOW_init(GlobalConfig.device_id);       
-    }
-    if (NetworkConfig.espnow==0 && NetworkConfig.wifi_type<4)
+    if (NetworkConfig.wifi_type<4)
     {
           wifi.init(&NetworkConfig);
           wifi.cihaz = &cihazlar;
@@ -367,7 +388,7 @@ void config(void)
                     }
         }  
         ESP_LOGI(TAG,"%d remote function eklendi",jj);                        
-        function_list();
+       // function_list();
     }
    
   
@@ -377,7 +398,7 @@ void config(void)
    read_locations(disk);
    //list_locations();
 
-     if (NetworkConfig.espnow==0 && NetworkConfig.wifi_type<4 && netstatus==true )
+     if (NetworkConfig.wifi_type<4 && netstatus==true )
      {
           ESP_LOGI(TAG, "TCP SERVER START");
           tcpserver.Start(&NetworkConfig,&GlobalConfig,TCP_PORT, &coap_callback,&cihazlar);
@@ -394,12 +415,7 @@ void config(void)
                ESP_LOGI(TAG, "WEB START");
                ESP_ERROR_CHECK(start_rest_server("/config",&NetworkConfig, &GlobalConfig, &webwrite, &defreset)); 
           }
-
-          if (netconfig->upgrade==1)
-          {
-             ESP_LOGI(TAG,"Firmware Upgrade");
-             xTaskCreate(&ota_task, "ota_task", 8192, &NetworkConfig, 5, NULL);
-          }         
+ 
      }
 
     char *Current_Date_Time = (char *)malloc(50);
@@ -415,11 +431,11 @@ void config(void)
     ESP_LOGI(TAG,"             App Version : %s" ,desc->version);
     ESP_LOGI(TAG,"                App Name : %s" ,desc->project_name);    
     ESP_LOGI(TAG,"         WIFI            : %s" ,(netstatus)?"OK":"Wifi YOK");
-    ESP_LOGI(TAG,"         ESP_NOW         : %d" ,NetworkConfig.espnow);
     ESP_LOGI(TAG,"         IP              : %s" ,Addr.to_string(NetworkConfig.home_ip));
     ESP_LOGI(TAG,"         NETMASK         : %s" ,Addr.to_string(NetworkConfig.home_netmask));
     ESP_LOGI(TAG,"         GATEWAY         : %s" ,Addr.to_string(NetworkConfig.home_gateway));
     ESP_LOGI(TAG,"         BROADCAST       : %s" ,Addr.to_string(NetworkConfig.home_broadcast));
+    ESP_LOGI(TAG,"         LOGLAR          : %s" ,(NetworkConfig.logwrite==1)?"Arşivleniyor":"Ekrana Yazılıyor");
     ESP_LOGI(TAG,"         MAC             : %s" ,(char*)NetworkConfig.mac);
     ESP_LOGI(TAG,"         Free heap       : %lu" ,esp_get_free_heap_size());
     free(Current_Date_Time);
@@ -429,7 +445,5 @@ void config(void)
     add_daire_security(daire,blok);  
 
     Device_Read(&disk,&cihazlar);
-
-    
 
 }

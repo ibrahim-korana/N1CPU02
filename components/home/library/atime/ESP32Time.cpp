@@ -124,6 +124,11 @@ void ESP32Time::getTimeDate(char *ret, bool mode){
 	}
 }
 
+void ESP32Time::getTimeDateTR(char *ret){
+	struct tm timeinfo = getTimeStruct();
+		strftime(ret, 50, "%d.%m.%Y %H:%M:%S", &timeinfo);
+}
+
 /*!
     @brief  get the time as an Arduino String object
 */

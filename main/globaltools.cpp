@@ -65,8 +65,8 @@ void full_send_broadcast(char *dat)
   }
 */
   rs485.Sender(dat,255);
-  if (NetworkConfig.espnow==0) broadcast.Send(dat);
-  if (NetworkConfig.espnow==1) EspNOW_Broadcast(dat);
+  broadcast.Send(dat);
+ 
 }
 
 void broadcast_I_REQ(void)
@@ -231,7 +231,7 @@ void send_status(uint8_t id, uint8_t sender)
     {     
       if (target->genel.device_id==id || id==0)
         {
-          printf("Status id %d %d\n",target->genel.device_id,id);
+          //printf("Status id %d %d\n",target->genel.device_id,id);
           cJSON *root = cJSON_CreateObject();
           cJSON_AddStringToObject(root, "com", "status");
           cJSON_AddNumberToObject(root, "id", target->genel.device_id);
@@ -242,7 +242,7 @@ void send_status(uint8_t id, uint8_t sender)
 
             while(uart.is_busy()) vTaskDelay(30/portTICK_PERIOD_MS);
             uart.Sender(dat,sender);
-            printf("%d %s\n",sender,dat);
+            //printf("%d %s\n",sender,dat);
             
           cJSON_free(dat);
           cJSON_Delete(root);  
@@ -280,7 +280,7 @@ bool event_action(cJSON *rcv)
       
       //alanya için eklendi
       //-----------------------
-      if (strcmp(aa->genel.name,"cont")==0)
+      /* if (strcmp(aa->genel.name,"cont")==0)
         {
           if (stat.stat==true)
             {
@@ -299,7 +299,7 @@ bool event_action(cJSON *rcv)
                 }
             }
         }
-        
+         */
         //-----------------
   }
   return true;
@@ -364,7 +364,7 @@ void send_location(char *response)
         target=(prg_location_t *)target->next;
       }
     char *dat = cJSON_PrintUnformatted(root); 
-    printf("LOC %s\n",dat);
+    //printf("LOC %s\n",dat);
     strcpy(response,dat);
     cJSON_free(dat);
     cJSON_Delete(root);    

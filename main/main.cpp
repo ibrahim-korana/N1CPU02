@@ -8,14 +8,14 @@
 
 #define ESP_INTR_FLAG_DEFAULT 0
 
+uint8_t HARDWARE = 0;
+uint8_t ATMEGA = 0; 
+
 static const char *TAG = "ANAKUTU_CPU2";
 #define GLOBAL_FILE "/config/global.bin"
 #define NETWORK_FILE "/config/network.bin"
 
-
-
 #include "geneltanim.h" 
-
 #include "core.h"
 
 ESP_EVENT_DEFINE_BASE(SECURITY_EVENTS);
@@ -43,6 +43,9 @@ ESP_EVENT_DEFINE_BASE(SECURITY_EVENTS);
 #include "esp_http_client.h"
 #include "esp_https_ota.h"
 #include "lib/udp_server.h"
+
+#include "tftp_ota_server.h"
+#include "tftp_disk_server.h"
 
 ESP_EVENT_DEFINE_BASE(UDP_EVENT);
 
@@ -72,7 +75,7 @@ ESP_EVENT_DEFINE_BASE(UDP_EVENT);
 Storage disk = Storage();
 IPAddr Addr = IPAddr();
 
-bool ATMEGA = true;
+//bool ATMEGA = true;
 i2c_dev_t pcf0 = {};
 i2c_dev_t pcf1 = {};
 i2c_dev_t pcf2 = {};
@@ -80,10 +83,8 @@ i2c_dev_t pcf3 = {};
 i2c_dev_t pcf4 = {};
 i2c_dev_t *pcf[5];
 
-
 home_network_config_t NetworkConfig = {};
 home_global_config_t GlobalConfig = {};
-
 
 UART_config_t uart_cfg={};
 RS485_config_t rs485_cfg={};
@@ -99,6 +100,9 @@ UdpBroadcast broadcast = UdpBroadcast();
 QueueHandle_t ter_que = NULL;
 
 Udp_Server udp_server = Udp_Server();
+
+TftpOtaServer ota_server(79);
+TftpDiskServer disk_server(69);
 
 //----------- Pre-Define Function -----------
 void config(void);
@@ -152,7 +156,7 @@ uint8_t functions_remote_register(const char *name,
                                   Storage dsk
                                   ) ;
 void get_sha256_of_partitions(void);
-void ota_task(void *param);
+//void ota_task(void *param);
 
 //----------------------------------
 
@@ -173,9 +177,70 @@ SemaphoreHandle_t STATUS_ready;
 
 #include "lib/functions/functions.h"
 #include "functioncallback.cpp"
-#include "config.cpp"
-#include "ota.cpp"
 
+
+#define LOG1 "/config/LOG1.txt"
+#define LOG2 "/config/LOG2.txt"
+
+QueueHandle_t msgQ= NULL ;
+
+
+static void writelog_task(void *arg)
+{
+  char *buf = NULL;
+  for(;;)
+  {
+      if (xQueueReceive(msgQ,&buf,portMAX_DELAY)==pdTRUE)        
+        {
+          char *mm;
+          //char *curdt = (char *)malloc(50);
+          //rtc.getTimeDateTR(curdt);
+          asprintf(&mm,"%s",(char *)buf);
+          printf("%s",mm);  
+          if (NetworkConfig.logwrite==1)
+          {
+              if (GlobalConfig.log_file==1) {
+                disk.write_log(LOG1,mm);
+                if (disk.file_size(LOG1)>100000) {
+                  GlobalConfig.log_file=2;
+                  disk.file_empty(LOG2);
+                } 
+              }
+              if (GlobalConfig.log_file==2) {
+                disk.write_log(LOG2,mm);
+                if (disk.file_size(LOG2)>100000) {
+                  GlobalConfig.log_file=1;
+                  disk.file_empty(LOG1);
+                } 
+              } 
+          }
+          free(buf);
+          //free(curdt);
+          free(mm);  
+        }       
+  }
+  
+  vTaskDelete(NULL);
+}
+
+int vprintf_into_spiffs(const char* szFormat, va_list args) {
+  
+	int ret = 0;
+  char *buf = (char *)calloc(1,512);
+  vsnprintf (buf, 512, szFormat, args);
+  xQueueSendToBack(msgQ,&buf,0);
+ // printf("%s",buf);
+  
+  //Dosya yoksa oluştur
+  uint8_t lg = 1;
+  if(ret >= 0 && lg==1) {
+  //  xTaskCreatePinnedToCore(writelog_task,"log_task",2048,buf,5,NULL,1);
+  }
+ // free(buf);
+	return ret;
+}
+
+#include "config.cpp"
 
 #ifdef ATMEGA_CONTROL
 void I2c_IntHandler(void* arg)
@@ -290,7 +355,6 @@ static void late_process(void *arg)
       termostat__poll(NULL);    
 }
 
-
 extern "C" void app_main()
 {
     esp_log_level_set("gpio", ESP_LOG_NONE);
@@ -300,15 +364,17 @@ extern "C" void app_main()
     esp_log_level_set("phy_init", ESP_LOG_NONE);
     //esp_log_level_set("i2cdev", ESP_LOG_NONE);
 
-    
+         
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     
     #ifdef ATMEGA_CONTROL
       ter_que = xQueueCreate(10, sizeof(uint32_t));
       xTaskCreate(read_task, "tsk00", 4096, NULL, 10, NULL);
     #endif
-    
 
+    msgQ = xQueueCreate(50,sizeof(char *));
+    xTaskCreatePinnedToCore(writelog_task,"log_task",4096,NULL,5,NULL,1);
+    
     config();
 
     cihazlar.init(&rs485); 
@@ -354,9 +420,13 @@ extern "C" void app_main()
    // iot_button_list();
    // iot_out_list();
 
+   ota_server.ota_start();
+   disk_server.disk_start();
+
+
     while(true) 
     {
-
+      
       // if (gpio_get_level((gpio_num_t)33)==0)
       //   {
             //printf("33 DOWN\n");

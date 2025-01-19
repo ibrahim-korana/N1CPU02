@@ -10,6 +10,24 @@ dependencies:
     source:
       type: idf
     version: 5.2.0
-manifest_hash: 28a5b3a2ea808ab0ad36c127027513510303d24786464159784fdbcbac8ca10e
+  tftp_disk_server:
+    component_hash: null
+    source:
+      path: D:\esp_prj\global\tftp_disk_server
+      type: local
+    version: 2.0.0
+  tftp_ota_server:
+    component_hash: null
+    source:
+      path: D:\esp_prj\global\tftp_ota_server
+      type: local
+    version: 2.0.0
+  tftp_server:
+    component_hash: null
+    source:
+      path: D:\esp_prj\global\tftp_server
+      type: local
+    version: 2.0.0
+manifest_hash: 539c50867426361cf17f2e39393913bff1ae75fd044704b6f3ed94172e50344b
 target: esp32
 version: 1.0.0

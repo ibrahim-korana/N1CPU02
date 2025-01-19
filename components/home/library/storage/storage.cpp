@@ -43,16 +43,15 @@ bool Storage::function_file_format(void)
 
 bool Storage::status_file_format(void)
 {
-    FILE *fd = fopen(STATUS_FILE, "r+");
+    FILE *fd = fopen(STATUS_FILE, "w+");
     if (fd == NULL) {ESP_LOGE(TAG,"%s not open",STATUS_FILE); return false;}
     fseek(fd, 0, SEEK_SET);  
     char *ff = (char *)calloc(1,sizeof(home_status_t)*MAX_FUNCTION);
-    memset(ff, 0,sizeof(home_status_t)*MAX_FUNCTION);
-    fwrite(ff,1,sizeof(home_status_t)*MAX_FUNCTION,fd);
+    fwrite(ff,sizeof(home_status_t)*MAX_FUNCTION,1,fd);
     free(ff);
     fflush(fd);
     fclose(fd);
-    ESP_LOGE(TAG, "Status File FORMAT");
+    printf("Status File FORMAT\n");
     return true; 
 
 }
@@ -103,13 +102,16 @@ bool Storage::init(void)
     } else {
         ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
     }
-
-    if (!file_control(STATUS_FILE)) return false;   
+    
+    file_control(STATUS_FILE); 
+    if (file_size(STATUS_FILE)!=(sizeof(home_status_t)*MAX_FUNCTION)) status_file_format();
+        
     if (!file_control(FUNCTION_FILE)) return false;
     if (file_size(FUNCTION_FILE)==0) function_file_format();
-    if (file_size(STATUS_FILE)==0) status_file_format();
+    //list("/config", "*.*");
 
-    //status_file_format();
+   // status_file_format();
+   
 
     return err;
 }
@@ -118,10 +120,12 @@ bool Storage::init(void)
 bool Storage::file_search(const char *name)
 {
   struct stat st;  
+  
   if (stat(name, &st) != 0) {
         ESP_LOGE(TAG, "%s not FOUND",name);
         return false;
   } else { 
+    if(st.st_size==0) return false;
     return true; 
   }   
   return false;
@@ -162,8 +166,9 @@ bool Storage::file_create(const char *name, uint16_t size)
 //diskte dosya yoksa boş olarak oluşturur.
 bool Storage::file_control(const char *name)
 {
-    if (!file_search(name)) {
-        ESP_LOGE(TAG, "%s CREATE",name);
+    bool ff = file_search(name);
+    if (!ff) {
+       // printf( "%s CREATE\n",name);
         FILE *fd = fopen(name, "w");
         if (fd==NULL) {ESP_LOGE(TAG,"%s not created",name);return false;}
         fclose(fd);
@@ -172,9 +177,19 @@ bool Storage::file_control(const char *name)
   return true;
 }
 
+void Storage::write_log(const char*name, char* text)
+{
+   FILE *fd = fopen(name, "a");
+   if (fd == NULL) {ESP_LOGE(TAG, "%s not open",name); return ;}
+   
+   fwrite(text,1,strlen(text),fd);
+   fflush(fd);
+   fclose(fd);
+}
+
 int Storage::file_size(const char *name)
 {
-    FILE *fd = fopen(name, "r+");
+    FILE *fd = fopen(name, "r");
     if (fd == NULL) {ESP_LOGE(TAG, "%s not open",name); return 0;}
     fseek(fd, 0, SEEK_END);
     int file_size = ftell(fd);
@@ -189,13 +204,10 @@ bool Storage::write_status(home_status_t *stat, uint8_t obj_num, bool start)
 {
      FILE *fd = fopen(STATUS_FILE, "r+");
      if (fd == NULL) {ESP_LOGE(TAG,"%s not open",STATUS_FILE); return false;}
-     fseek(fd, (obj_num*sizeof(home_status_t)), SEEK_SET);
-     if (start) {
-        char *ff = (char *)malloc(sizeof(home_status_t)*MAX_DEVICE);
-        memset(ff, 0,sizeof(home_status_t)*MAX_DEVICE);
-        fwrite(ff,1,sizeof(home_status_t)*MAX_DEVICE,fd);
-        free(ff);
-     } else fwrite(stat,1,sizeof(home_status_t),fd);
+     uint16_t yer = (obj_num*sizeof(home_status_t));
+     fseek(fd, yer, SEEK_SET);
+     fwrite(stat,sizeof(home_status_t),1,fd);
+     
      fflush(fd);
      fclose(fd);
      return true; 
@@ -204,8 +216,10 @@ bool Storage::read_status(home_status_t *stat, uint8_t obj_num)
 {
      FILE *fd = fopen(STATUS_FILE, "r+");
      if (fd == NULL) {ESP_LOGE(TAG, "%s not open",STATUS_FILE); return false;}
-     fseek(fd, (obj_num*sizeof(home_status_t)), SEEK_SET);
-     fread(stat,1,sizeof(home_status_t),fd);
+     uint16_t yer = (obj_num*sizeof(home_status_t));
+     fseek(fd, yer, SEEK_SET);
+     size_t written = fread(stat,sizeof(home_status_t),1,fd);
+     
      fclose(fd);
      return true; 
 }

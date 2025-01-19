@@ -95,7 +95,7 @@
             "id": 7,
             "timer": 40, 
             "loc": 0,
-            "global":30, 
+            "global":0, 
             "hardware": {
                 "location" : "local",
                 "port": [

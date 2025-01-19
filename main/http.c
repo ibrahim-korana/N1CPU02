@@ -59,19 +59,7 @@ int replace(char *buf, char* tmp)
 		else
 			strcpy(tmp," ");
 	                            }                            
-                            
-    if (strcmp(buf,"COMM1")==0) {
-		if (netconfig->espnow==0)
-			strcpy(tmp,"checked");
-		else
-			strcpy(tmp," ");
-	                            }
-    if (strcmp(buf,"COMM2")==0) {
-		if (netconfig->espnow==1)
-			strcpy(tmp,"checked");
-		else
-			strcpy(tmp," ");
-	                            }   
+                             
                                     
     if (strcmp(buf,"GETIP1")==0) {
 			if (netconfig->ipstat==STATIC_IP)
@@ -90,9 +78,9 @@ int replace(char *buf, char* tmp)
 	if (strcmp(buf,"GATEWAY")==0) sprintf(tmp,"%s",(char *)netconfig->gateway);
 	if (strcmp(buf,"SSID")==0) sprintf(tmp,"%s",(char *)netconfig->wifi_ssid);
 	if (strcmp(buf,"PASS")==0) sprintf(tmp,"%s",(char *)netconfig->wifi_pass);
-    if (strcmp(buf,"UPDSER")==0) sprintf(tmp,"%s",(char *)netconfig->update_server);
-    if (strcmp(buf,"UPD")==0) {
-		if (netconfig->upgrade==1)
+    
+    if (strcmp(buf,"LOGW")==0) {
+		if (netconfig->logwrite==1)
 			strcpy(tmp,"checked");
 		else
 			strcpy(tmp," ");
@@ -381,7 +369,7 @@ static esp_err_t save_handler(httpd_req_t *req)
 
     if (findparam(buf,"NAME",aaa)==1) strcpy((char *)globalconfig->device_name,aaa);
     if (findparam(buf,"DEVID",aaa)==1) {p=atoi(aaa);globalconfig->device_id = p;}
-    if (findparam(buf,"COMM",aaa)==1) {p=atoi(aaa);netconfig->espnow = p;}
+    
     if (findparam(buf,"OUT",aaa)==1)
     {
         p=atoi(aaa);
@@ -402,8 +390,8 @@ static esp_err_t save_handler(httpd_req_t *req)
     if (findparam(buf,"GATEWAY",aaa)==1) strcpy((char *)netconfig->gateway,aaa);
     if (findparam(buf,"SSID",aaa)==1) strcpy((char *)netconfig->wifi_ssid,aaa);
     if (findparam(buf,"PASS",aaa)==1) strcpy((char *)netconfig->wifi_pass,aaa);
-    if (findparam(buf,"UPDSER",aaa)==1) strcpy((char *)netconfig->update_server,aaa);
-    if (findparam(buf,"UPD",aaa)==1) {netconfig->upgrade = 1;} else {netconfig->upgrade = 0;}
+    
+    if (findparam(buf,"LOGW",aaa)==1) {netconfig->logwrite = 1;} else {netconfig->logwrite = 0;}
 
     callback();
 

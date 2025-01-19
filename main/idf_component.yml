@@ -2,9 +2,18 @@
 dependencies:
   bblanchon/arduinojson: "^6.21.3"
   
+  
   ## Required IDF version
   idf:
     version: ">=4.1.0"
+  tftp_server:
+    path: D:/esp_prj/global/tftp_server  
+  tftp_ota_server:
+    path: D:/esp_prj/global/tftp_ota_server 
+  tftp_disk_server:
+    path: D:/esp_prj/global/tftp_disk_server  
+  
+    
   # # Put list of dependencies here
   # # For components maintained by Espressif:
   # component: "~1.0.0"
@@ -16,3 +25,5 @@ dependencies:
   #   # `public` flag doesn't have an effect dependencies of the `main` component.
   #   # All dependencies of `main` are public by default.
   #   public: true
+
+  
