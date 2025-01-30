@@ -1,69 +1,66 @@
 {
     "devices":"Ice_ExBox",
-    "Project":"Kurtkoy Ana Kutu",
     "functions": [
         {
-            "name":"cur",
-            "uname":"Perde",
+            "name":"air",
+            "uname":"termostat1",
             "id": 1,
-            "timer": 60,
+            "timer": 0,
+            "loc": 0,
             "hardware": {
                 "location" : "local",
                 "port": [
-                    {"pin": 2,"pcf":1, "name":"UP", "type":"PORT_OUTPORT"},
-                    {"pin": 3,"pcf":1, "name":"DOWN", "type":"PORT_OUTPORT"},
-                    {"pin": 3,"pcf":1, "name":"UP", "type":"PORT_INPORT"},
-                    {"pin": 4,"pcf":1, "name":"DOWN", "type":"PORT_INPORT"},
-                    {"pin": 1,"name":"AN_03", "type":"PORT_VIRTUAL"}
+                    {"pin": 1,"pcf":1, "name":"KOLLEKTOR1", "type":"PORT_OUTPORT"},
+                    {"pin": 0, "name":"TEMP01", "type":"PORT_VIRTUAL"}
                 ]
             }
         },
+            
         {
-            "name":"lamp",
-            "uname":"Lamba1",
+            "name":"air",
+            "uname":"termostat2",
             "id": 2,
             "timer": 0,
             "loc": 0,
             "hardware": {
                 "location" : "local",
                 "port": [
-                    {"pin": 4,"pcf":1, "name":"Aydinlatma_1", "type":"PORT_OUTPORT"},
-                    {"pin": 5,"pcf":1, "name":"Aydinlatma_1", "type":"PORT_INPORT"},
-                    {"pin": 1, "name":"AN_01", "type":"PORT_VIRTUAL"}
+                    {"pin": 2,"pcf":1, "name":"KOLLEKTOR2", "type":"PORT_OUTPORT"},
+                    {"pin": 0, "name":"TEMP02", "type":"PORT_VIRTUAL"}
                 ]
             }
         },
+
         {
-            "name":"lamp",
-            "uname":"Lamba2",
+            "name":"mwater",
+            "uname":"soguk su",
             "id": 3,
-            "timer": 0,
+            "timer": 60,
             "loc": 0,
             "hardware": {
                 "location" : "local",
                 "port": [
-                    {"pin": 5,"pcf":1, "name":"Aydinlatma_1", "type":"PORT_OUTPORT"},
-                    {"pin": 6,"pcf":1, "name":"Aydinlatma_1", "type":"PORT_INPORT"},
-                    {"pin": 1, "name":"AN_02", "type":"PORT_VIRTUAL"}
+                    {"pin": 3, "pcf":1, "name":"ON","type":"PORT_OUTPORT"},
+                    {"pin": 4, "pcf":1, "name":"OFF","type":"PORT_OUTPORT"}
                 ]
             }
-        },    
+        },
+
         {
-            "name":"sec",
-            "uname":"guvenlik",
+            "name":"mwater",
+            "uname":"sicak su",
             "id": 4,
+            "timer": 60,
             "loc": 0,
-            "timer": 5,
             "hardware": {
                 "location" : "local",
-                "port": [               
-                    {"pin": 27, "name":"Su","type":"PORT_WATER", "reverse":1},     
-                    {"pin": 1, "pcf":1, "name":"Duman","type":"PORT_INPORT"},                  
-                    {"pin": 2, "pcf":1, "name":"Kapi","type":"PORT_INPORT"},
-                    {"pin": 11, "pcf":1, "name":"Alarm","type":"PORT_OUTPORT"}
-                ]              
+                "port": [
+                    {"pin": 5, "pcf":1, "name":"ON","type":"PORT_OUTPORT"},
+                    {"pin": 6, "pcf":1, "name":"OFF","type":"PORT_OUTPORT"}
+                ]
             }
         },
+
         {
             "name":"cont",
             "uname":"kontaktor",
@@ -72,51 +69,42 @@
             "hardware": {
                 "location" : "local",
                 "port": [
-                    {"pin": 1, "pcf":1, "name":"Kontaktor","type":"PORT_OUTPORT"}
+                    {"pin": 8, "pcf":1, "name":"Kontaktor","type":"PORT_OUTPORT"}
                 ]
             }
         },
+
         {
-            "name":"onoff",
-            "uname":"kombi",
+            "name":"tmrelay",
+            "uname":"timer_relay",
             "id": 6,
-            "timer": 0,
             "loc": 0,
+            "timer": 45,
             "hardware": {
                 "location" : "local",
                 "port": [
-                    {"pin": 8,"pcf":1, "name":"ON", "type":"PORT_OUTPORT"}
+                    {"pin": 7, "pcf":1, "name":"tm_role","type":"PORT_OUTPORT", "reverse":1}
                 ]
             }
         },
+        
         {
-            "name":"air",
-            "uname":"Klima1",
+            "name":"sec",
+            "uname":"guvenlik",
             "id": 7,
-            "timer": 40, 
             "loc": 0,
-            "global":0, 
+            "timer": 10,
             "hardware": {
                 "location" : "local",
-                "port": [
-                    {"pin": 9,"pcf":1, "name":"KOLLEKTOR2", "type":"PORT_OUTPORT"},
-                    {"pin": 1, "name":"TEMP01", "type":"PORT_VIRTUAL"}
+                "port": [                    
+                    {"pin": 27, "name":"Su","type":"PORT_WATER", "reverse":1},
+                    {"pin": 5, "pcf":1, "name":"Gaz","type":"PORT_INPORT"}, 
+                    {"pin": 4, "pcf":1, "name":"Enerji","type":"PORT_INPORT"},
+                    {"pin": 8, "pcf":1, "name":"Kontaktor","type":"PORT_OUTPORT"}
                 ]
             }
         },
-        {
-            "name":"water",
-            "uname":"SU",
-            "id": 8,
-            "timer": 0,
-            "loc": 0,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 6, "pcf":1, "name":"SWITCH","type":"PORT_OUTPORT"}
-                ]
-            }
-        },
+        
         {
             "name":"elev",
             "uname":"asansor",
@@ -126,22 +114,10 @@
             "hardware": {
                 "location" : "local",
                 "port": [
-                    {"pin": 12, "pcf":1, "name":"role","type":"PORT_OUTPORT"}
-                ]
-            }
-        },
-        {
-            "name":"gara",
-            "uname":"Garaj 1",
-            "id": 10,
-            "loc": 0,
-            "timer": 5,
-            "hardware": {
-                "location" : "local",
-                "port": [
-                    {"pin": 10, "pcf":1, "name":"role","type":"PORT_OUTPORT"}
+                    {"pin": 9, "pcf":1, "name":"role","type":"PORT_OUTPORT"}
                 ]
             }
         }
+
     ]
 }

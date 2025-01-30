@@ -122,10 +122,10 @@ void info(const char*komut, char* data);
 void Global_Send(char *data,uint8_t sender, transmisyon_t transmisyon);
 void response_task(void *arg);
 
-#ifdef ATMEGA_CONTROL
+//ATMEGA ACIKSA
   static void IRAM_ATTR I2c_IntHandler(void* arg);
   static void read_task(void* arg);
-#endif  
+  
 uint8_t function_count(void);
 Base_Function *function_find(uint8_t id);
 Base_Function *get_function_head_handle(void);
@@ -159,7 +159,6 @@ void get_sha256_of_partitions(void);
 //void ota_task(void *param);
 
 //----------------------------------
-
 
 SemaphoreHandle_t register_ready;
 SemaphoreHandle_t status_ready;
@@ -240,51 +239,52 @@ int vprintf_into_spiffs(const char* szFormat, va_list args) {
 	return ret;
 }
 
+SemaphoreHandle_t Int_Sem;
+
 #include "config.cpp"
 
-#ifdef ATMEGA_CONTROL
 void I2c_IntHandler(void* arg)
 {
-    uint16_t aa=0;
+    uint32_t aa=0;
     BaseType_t Tok;
     Tok = pdFALSE;
-    gpio_intr_disable(I2CINT);
-    xQueueSendFromISR(ter_que, &aa, &Tok);	
+  //  gpio_intr_disable(I2CINT);
+    //xQueueSendFromISR(ter_que, &aa, &Tok);	
+    //xQueueSend(ter_que, &aa, 10);
+    xSemaphoreGiveFromISR(Int_Sem,&Tok);
     if( Tok ) portYIELD_FROM_ISR ();
 }
 
-void read_task(void* arg)
-{
-    uint32_t io_num;
-    for(;;) {
-        if(xQueueReceive(ter_que, &io_num, portMAX_DELAY)) {
-            //ESP_LOGW(TAG,"Termostat Interrupt");
-            Termostat *tmp = get_termostat_head_handle();
-            while(tmp)
-            {
-              //tmp->read_gateway();
-              tmp->read_send();
-              vTaskDelay(200/portTICK_PERIOD_MS); 
-              tmp =tmp->next;
-            }
-            
-            vTaskDelay(100/portTICK_PERIOD_MS); 
-            gpio_intr_enable(I2CINT);
-        }
-    }
-}
-#endif
+
+
 
 static void termostat__poll(void *arg)
 {
   Termostat *tmp = get_termostat_head_handle();
   //ESP_LOGI(TAG,"Termostat Polling");
-  while(tmp)
-    {
-      //printf("ID %d\n",tmp->get_id());
-      tmp->read_gateway();
-      vTaskDelay(200/portTICK_PERIOD_MS); 
-      tmp =tmp->next;
+  static bool run = false;
+  if (!run)
+      {
+        run =true;
+        while(tmp)
+          {      
+            //printf("ID %d\n",tmp->get_id());     
+            tmp->read_gateway();
+            vTaskDelay(500/portTICK_PERIOD_MS);        
+            tmp =tmp->next;
+          }
+        run=false;
+      }    
+}
+
+void read_task(void* arg)
+{
+    uint32_t io_num;
+    ESP_LOGW(TAG,"read_task Created");
+    for(;;) {
+            xSemaphoreTake(Int_Sem,portMAX_DELAY);
+            ESP_LOGW(TAG,"Termostat Interrupt");   
+           // termostat__poll(NULL);     
     }
 }
 
@@ -345,14 +345,16 @@ static void late_process(void *arg)
         cihazlar.start(true);
       } ;//else refresh_device();
 
-    
-      esp_timer_handle_t ztimer = NULL;
-      esp_timer_create_args_t arg1 = {};
-      arg1.callback = &termostat__poll;
-      arg1.name = "tpoll";
-      ESP_ERROR_CHECK(esp_timer_create(&arg1, &ztimer));
-      ESP_ERROR_CHECK(esp_timer_start_periodic(ztimer, 30000000));
-      termostat__poll(NULL);    
+      if (ATMEGA>0)
+      {
+        esp_timer_handle_t ztimer = NULL;
+        esp_timer_create_args_t arg1 = {};
+        arg1.callback = &termostat__poll;
+        arg1.name = "tpoll";
+        ESP_ERROR_CHECK(esp_timer_create(&arg1, &ztimer));
+        ESP_ERROR_CHECK(esp_timer_start_periodic(ztimer, 20000000));
+        termostat__poll(NULL);
+      }    
 }
 
 extern "C" void app_main()
@@ -367,14 +369,9 @@ extern "C" void app_main()
          
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
     
-    #ifdef ATMEGA_CONTROL
-      ter_que = xQueueCreate(10, sizeof(uint32_t));
-      xTaskCreate(read_task, "tsk00", 4096, NULL, 10, NULL);
-    #endif
-
     msgQ = xQueueCreate(50,sizeof(char *));
     xTaskCreatePinnedToCore(writelog_task,"log_task",4096,NULL,5,NULL,1);
-    
+   
     config();
 
     cihazlar.init(&rs485); 
@@ -407,21 +404,17 @@ extern "C" void app_main()
    // test01(50, pcf);
     //test02(50, pcf);
         
-
     
-
-    //uint8_t _aa=0;
-    //xQueueSend(ter_que, &_aa, ( TickType_t ) 10 );
-    #ifdef ATMEGA_CONTROL
-       gpio_intr_enable(I2CINT);	
-    #endif   
-
     printf("BASLADI\n");
    // iot_button_list();
    // iot_out_list();
 
-   ota_server.ota_start();
+//   ota_server.ota_start();
    disk_server.disk_start();
+
+    if (ATMEGA>0) {
+       gpio_intr_enable(I2CINT);	
+    }   
 
 
     while(true) 

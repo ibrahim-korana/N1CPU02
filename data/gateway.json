@@ -1,0 +1,6 @@
+{
+    "gateways": [
+       {"name":"TEMP01","id":51,"trns":"PJON"},
+	   {"name":"TEMP02","id":52,"trns":"PJON"}
+    ]
+}

@@ -40,7 +40,7 @@ static button_dev_t *g_head_handle = NULL;
 static esp_timer_handle_t g_button_timer_handle;
 static bool g_is_timer_running = false;
 
-#define TICKS_INTERVAL    12 //2-20
+#define TICKS_INTERVAL    100 //2-20
 #define DEBOUNCE_TICKS    5 //1- MAX 8
 #define SHORT_TICKS       (1800 /TICKS_INTERVAL) //50 800  180
 #define LONG_TICKS        (5000 /TICKS_INTERVAL) //500 5000 1500

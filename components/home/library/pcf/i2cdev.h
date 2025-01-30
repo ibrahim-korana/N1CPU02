@@ -74,7 +74,7 @@ typedef struct
     SemaphoreHandle_t mutex; //!< Device mutex
     uint32_t timeout_ticks;  /*!< HW I2C bus timeout (stretch time), in ticks. 80MHz APB clock
                                   ticks for ESP-IDF, CPU ticks for ESP8266.
-                                  When this value is 0, I2CDEV_MAX_STRETCH_TIME will be used */
+                                  When this value is 0, I2CDEV_MAX_STRETCH_TIME will be used */                             
     uint8_t reg;                              
 } i2c_dev_t;
 

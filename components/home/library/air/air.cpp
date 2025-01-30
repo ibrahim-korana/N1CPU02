@@ -263,6 +263,7 @@ void Air::durum_to_status(void)
     status.counter = durum.stat.int_st;
     status.temp = durum.temp;
     status.set_temp = durum.set_temp;    
+    status.status = durum.stat.st.role_durumu;
 }
 
 /*

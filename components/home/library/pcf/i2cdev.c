@@ -39,7 +39,7 @@
 
 static const char *TAG = "i2cdev";
 
-#define CONFIG_I2CDEV_TIMEOUT 2500
+#define CONFIG_I2CDEV_TIMEOUT 25
 #define CONFIG_I2CDEV_NOLOCK y
 
 typedef struct {
@@ -118,15 +118,16 @@ esp_err_t i2c_dev_create_mutex(i2c_dev_t *dev)
 {
 #if !CONFIG_I2CDEV_NOLOCK
     if (!dev) return ESP_ERR_INVALID_ARG;
+    
+        ESP_LOGW(TAG, "[0x%02x at %d] creating mutex", dev->addr, dev->port);
+        dev->mutex = xSemaphoreCreateMutex();
+        if (!dev->mutex)
+        {
+            ESP_LOGE(TAG, "[0x%02x at %d] Could not create device mutex", dev->addr, dev->port);
+            return ESP_FAIL;
+        }
+       
 
-    ESP_LOGV(TAG, "[0x%02x at %d] creating mutex", dev->addr, dev->port);
-
-    dev->mutex = xSemaphoreCreateMutex();
-    if (!dev->mutex)
-    {
-        ESP_LOGE(TAG, "[0x%02x at %d] Could not create device mutex", dev->addr, dev->port);
-        return ESP_FAIL;
-    }
 #endif
 
     return ESP_OK;
@@ -271,6 +272,8 @@ esp_err_t i2c_dev_read(const i2c_dev_t *dev, const void *out_data, size_t out_si
     if (!dev || !in_data || !in_size) return ESP_ERR_INVALID_ARG;
 
     //SEMAPHORE_TAKE(dev->port);
+   // if (dev->mutex_var) 
+   //   if (xSemaphoreTake( dev->mutex, 100/portTICK_PERIOD_MS )==pdFALSE) return ESP_ERR_TIMEOUT;
 
     esp_err_t res = i2c_setup_port(dev);
     if (res == ESP_OK)
@@ -293,6 +296,9 @@ esp_err_t i2c_dev_read(const i2c_dev_t *dev, const void *out_data, size_t out_si
 
         i2c_cmd_link_delete(cmd);
     }
+    
+  //  if (dev->mutex_var) xSemaphoreGive( dev->mutex);
+
 
    // SEMAPHORE_GIVE(dev->port);
     return res;

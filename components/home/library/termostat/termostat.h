@@ -19,6 +19,7 @@ class Termostat {
         strcpy(name,nm);
         callback = cb;
         gateway_init_desc(&dev,0x04,(i2c_port_t)0,gpio_num_t(21),gpio_num_t(22));
+        Read_Sem = xSemaphoreCreateBinary();
         
       };
       ~Termostat() {
@@ -38,9 +39,11 @@ class Termostat {
       uint8_t get_error(void) {return error;}
       void set_error(uint8_t e) {error=e;}
       uint8_t inc_error(void) {error++; return error;}
+      void local_send(void);
 
       rs485_callback_t callback;
       Termostat *next = NULL;
+      
       
               
     private:
@@ -51,14 +54,21 @@ class Termostat {
       transmisyon_t trns=TR_PJON;
       RS485 *rs485;
       i2c_dev_t dev = {};   
-      uint8_t temp=0;
-      uint8_t set=0; 
+      volatile uint8_t temp=0;
+      volatile uint8_t set=0; 
       uint8_t error=0;
+      uint8_t ttemp=0;
+      uint8_t tset=0; 
+      SemaphoreHandle_t Read_Sem;
+      volatile bool Read_S = true;
+      
       
       
       static void ter_tim_callback(void* arg); 
       void tim_start(void);
       void tim_stop(void);  
+      static void at_read_task(void *arg);
+
 };
 
 #endif

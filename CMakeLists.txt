@@ -2,7 +2,7 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-set(PROJECT_VER "1.1.1.14")
+set(PROJECT_VER "1.1.1.16")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(N1CPU02)
 
@@ -44,4 +44,7 @@ spiffs_create_partition_image(storage data FLASH_IN_PROJECT)
     # TFTP OTA Server eklendi   
 # 1.1.1.14 ---> 15.01.2024
     # Log sistemi web e baglandı Default kayıtsız                  
-
+# 1.1.1.15 ---> 23.01.2024
+    # ATmega ve 8574 sayısı bin dosyasına eklendi
+# 1.1.1.16 ---> 29.01.2024
+    # ATmega için düzenleme yapıldı

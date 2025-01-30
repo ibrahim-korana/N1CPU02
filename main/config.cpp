@@ -113,12 +113,12 @@ void config(void)
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE; 
     gpio_config(&io_conf);
 
-    io_conf.mode = GPIO_MODE_OUTPUT;
+   /*  io_conf.mode = GPIO_MODE_OUTPUT;
     io_conf.pin_bit_mask =  (1ULL<<HARD_RESET);
     io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE; 
     gpio_config(&io_conf);
-    gpio_set_level(HARD_RESET,0);
+    gpio_set_level(HARD_RESET,0); */
 
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pin_bit_mask = (1ULL<<BUTTON1);
@@ -256,14 +256,27 @@ void config(void)
           ESP_LOGW(TAG, "EXTENDED PCF PASIF");    
       }
       
-      #ifdef ATMEGA_CONTROL
-        ATMEGA=true;
-        if (gateway_init_desc(&pcf3, 0x04, (i2c_port_t)0, (gpio_num_t)21, (gpio_num_t)22)!=ESP_OK) ATMEGA=false;
+      if (ATMEGA>0) {
+       
+        //ter_que = xQueueCreate(10, sizeof(uint32_t));
+        Int_Sem = xSemaphoreCreateBinary();
+        xSemaphoreGive(Int_Sem);
+
+        ESP_LOGW(TAG,"read_task Creating");
+        xTaskCreate(read_task, "tsk00", 4096, NULL, 10, NULL);
+        gpio_set_intr_type(I2CINT, GPIO_INTR_NEGEDGE);
+        gpio_isr_handler_add(I2CINT, I2c_IntHandler, NULL);
+        gpio_intr_disable(I2CINT);
+    
+        if (gateway_init_desc(&pcf3, 0x04, (i2c_port_t)0, (gpio_num_t)21, (gpio_num_t)22)!=ESP_OK) 
+        {
+            ESP_LOGE(TAG, "ATMEGA ERROR");
+            esp_restart();
+        }
         ESP_LOGW(TAG, "ATMEGA AKTIF");
-      #else
-        //pcf3 = NULL; 
+      } else { 
         ESP_LOGW(TAG, "ATMEGA PASIF"); 
-      #endif  
+      }  
      
       pcf[0] = &pcf0;
       pcf[1] = &pcf1;
@@ -271,16 +284,10 @@ void config(void)
       pcf[3] = &pcf3;
       pcf[4] = &pcf4;
 
-    #ifdef ATMEGA_CONTROL
-      gpio_set_intr_type(I2CINT, GPIO_INTR_NEGEDGE);
-      gpio_isr_handler_add(I2CINT, I2c_IntHandler, NULL);
-      gpio_intr_disable(I2CINT);
-    #endif  
+    
         
     gpio_set_level((gpio_num_t)LED, 0);
-    gpio_set_level((gpio_num_t)CPU1_RESET, 0);
-
-    
+    gpio_set_level((gpio_num_t)CPU1_RESET, 0); 
 
      //if(esp_event_loop_create_default()!=ESP_OK) {ESP_LOGE(TAG,"esp_event_loop_create_default ERROR "); }
 	   ESP_ERROR_CHECK(esp_event_handler_instance_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, all_event, NULL, NULL));
@@ -295,8 +302,6 @@ void config(void)
     //------------------- Pcf init ------------------
       
       gpio_set_level((gpio_num_t)LED, 1);
-
-    
 
     if (GlobalConfig.start_value==1) {GlobalConfig.start_value=0; 
                                       disk.write_file(GLOBAL_FILE,&GlobalConfig,sizeof(GlobalConfig),0); 
@@ -388,13 +393,14 @@ void config(void)
                     }
         }  
         ESP_LOGI(TAG,"%d remote function eklendi",jj);                        
-       // function_list();
+        function_list();
     }
    
-  
-    read_gateway(disk, rs485_callback, &rs485);
-     
-   
+    if (ATMEGA>0)
+    {
+        read_gateway(disk, rs485_callback, &rs485);
+    }
+       
    read_locations(disk);
    //list_locations();
 
